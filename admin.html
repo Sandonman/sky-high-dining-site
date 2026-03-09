@@ -16,6 +16,8 @@
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
     button{background:var(--gold);border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
     .status{color:var(--muted);font-size:.95rem}
+    .auth{display:flex;gap:8px;align-items:center;margin:8px 0 14px}
+    .auth input{background:#0b1220;color:#fff;border:1px solid #334155;border-radius:8px;padding:9px 10px;min-width:280px}
     table{width:100%;border-collapse:collapse;font-size:.93rem}
     th,td{border-bottom:1px solid #253245;padding:10px 8px;text-align:left;vertical-align:top}
     th{color:#cbd5e1}
@@ -40,7 +42,11 @@
         <h1 style="margin:0;font-size:1.4rem">Reservations</h1>
         <button id="refresh">Refresh</button>
       </div>
-      <div id="status" class="status">Loading…</div>
+      <div class="auth">
+        <input id="adminKey" type="password" placeholder="Enter admin access key" />
+        <button id="unlock">Unlock</button>
+      </div>
+      <div id="status" class="status">Enter admin key to load reservations.</div>
       <table id="table">
         <thead>
           <tr>
@@ -64,14 +70,24 @@
     const API = window.BOOKING_API_BASE;
     const statusEl = document.getElementById('status');
     const tbody = document.querySelector('#table tbody');
+    const adminKeyInput = document.getElementById('adminKey');
 
     function fmt(v){ try{return new Date(v).toLocaleString()}catch{return v||''} }
+    function getKey(){ return sessionStorage.getItem('admin_api_key') || ''; }
 
     async function load(){
+      const key = getKey();
+      if (!key) {
+        statusEl.textContent = 'Enter admin key to load reservations.';
+        return;
+      }
+
       statusEl.textContent = 'Loading…';
       tbody.innerHTML = '';
       try{
-        const res = await fetch(`${API}/api/admin/reservations`);
+        const res = await fetch(`${API}/api/admin/reservations`, {
+          headers: { 'x-admin-key': key }
+        });
         const data = await res.json();
         if(!res.ok) throw new Error(data.error || 'Failed to load');
         const rows = data.reservations || [];
@@ -93,6 +109,13 @@
         statusEl.textContent = err.message || 'Error loading reservations';
       }
     }
+
+    document.getElementById('unlock').addEventListener('click', () => {
+      const v = adminKeyInput.value.trim();
+      if (!v) return;
+      sessionStorage.setItem('admin_api_key', v);
+      load();
+    });
 
     document.getElementById('refresh').addEventListener('click', load);
     load();

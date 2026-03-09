@@ -122,7 +122,13 @@ app.post('/api/booking/submit', async (req, res) => {
   return res.json({ reservationId: result.rows[0].id, status: result.rows[0].status });
 });
 
-app.get('/api/admin/reservations', async (_req, res) => {
+app.get('/api/admin/reservations', async (req, res) => {
+  const adminKey = process.env.ADMIN_API_KEY;
+  const provided = req.header('x-admin-key');
+  if (!adminKey || provided !== adminKey) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
   try {
     const result = await pool.query(
       `select id, customer_name, customer_email, customer_phone, party_size, experience_type,

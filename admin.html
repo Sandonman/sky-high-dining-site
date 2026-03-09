@@ -26,6 +26,7 @@
     .actions button{padding:6px 8px;border-radius:8px;font-size:.78rem}
     .approve{background:#16a34a;color:#fff}
     .reject{background:#dc2626;color:#fff}
+    .note{width:220px;background:#0b1220;color:#fff;border:1px solid #334155;border-radius:8px;padding:6px 8px;font-size:.82rem}
     @media (max-width:860px){table{display:block;overflow:auto;white-space:nowrap}}
   </style>
 </head>
@@ -61,6 +62,8 @@
             <th>Party</th>
             <th>Experience</th>
             <th>Status</th>
+            <th>Updated</th>
+            <th>Admin Notes</th>
             <th>Actions</th>
             <th>ID</th>
           </tr>
@@ -83,12 +86,14 @@
     async function setStatus(id, status){
       const key = getKey();
       if (!key) return;
+      const noteEl = document.querySelector(`input[data-note-id="${id}"]`);
+      const adminNotes = noteEl ? noteEl.value.trim() : '';
       statusEl.textContent = `Updating ${id}...`;
       try {
         const res = await fetch(`${API}/api/admin/reservations/${id}/status`, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-admin-key': key },
-          body: JSON.stringify({ status })
+          body: JSON.stringify({ status, adminNotes })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Update failed');
@@ -125,6 +130,8 @@
             <td>${r.party_size || ''}</td>
             <td>${r.experience_type || ''}</td>
             <td><span class="pill">${r.status || ''}</span></td>
+            <td>${r.status_updated_at ? fmt(r.status_updated_at) : ''}</td>
+            <td><input class="note" data-note-id="${r.id}" value="${(r.admin_notes || '').replace(/"/g, '&quot;')}" placeholder="Add note" /></td>
             <td>
               <div class="actions">
                 <button class="approve" data-id="${r.id}" data-status="confirmed">Approve</button>

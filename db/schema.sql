@@ -45,6 +45,9 @@ create table if not exists reservation_holds (
   created_at timestamptz not null default now()
 );
 
+alter table reservations add column if not exists admin_notes text;
+alter table reservations add column if not exists status_updated_at timestamptz;
+
 create index if not exists idx_res_start on reservations(reservation_start_at);
 create index if not exists idx_res_status on reservations(status);
 create index if not exists idx_holds_slot on reservation_holds(slot_start_at, slot_end_at);

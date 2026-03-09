@@ -138,7 +138,7 @@ app.get('/api/admin/reservations', async (req, res) => {
   try {
     const result = await pool.query(
       `select id, customer_name, customer_email, customer_phone, party_size, experience_type,
-              reservation_start_at, status, created_at
+              reservation_start_at, status, created_at, admin_notes, status_updated_at
        from reservations
        order by created_at desc
        limit 200`
@@ -153,7 +153,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
   if (!requireAdmin(req, res)) return;
 
   const { id } = req.params;
-  const { status } = req.body;
+  const { status, adminNotes } = req.body;
   const allowed = new Set(['pending', 'pending_staff_approval', 'confirmed', 'cancelled']);
 
   if (!status || !allowed.has(status)) {
@@ -163,10 +163,12 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
   try {
     const result = await pool.query(
       `update reservations
-       set status = $1
-       where id = $2
-       returning id, status`,
-      [status, id]
+       set status = $1,
+           admin_notes = $2,
+           status_updated_at = now()
+       where id = $3
+       returning id, status, admin_notes, status_updated_at`,
+      [status, adminNotes || null, id]
     );
 
     if (result.rowCount === 0) {

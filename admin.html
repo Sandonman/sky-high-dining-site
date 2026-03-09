@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sky High Dining | Admin Reservations</title>
+  <style>
+    :root { --bg:#0f172a; --text:#f8fafc; --line:#334155; --muted:#94a3b8; --gold:#f59e0b; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui;background:linear-gradient(180deg,#020617 0%,#0f172a 100%);color:var(--text)}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px 18px 64px}
+    .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+    .brand{font-weight:700;font-size:1.2rem}
+    .nav a{color:#e2e8f0;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-left:6px;font-size:.95rem}
+    .card{border:1px solid var(--line);border-radius:14px;background:rgba(17,24,39,.78);padding:18px}
+    .row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+    button{background:var(--gold);border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .status{color:var(--muted);font-size:.95rem}
+    table{width:100%;border-collapse:collapse;font-size:.93rem}
+    th,td{border-bottom:1px solid #253245;padding:10px 8px;text-align:left;vertical-align:top}
+    th{color:#cbd5e1}
+    .pill{display:inline-block;border:1px solid #475569;border-radius:999px;padding:2px 8px;font-size:.78rem;color:#cbd5e1}
+    @media (max-width:860px){table{display:block;overflow:auto;white-space:nowrap}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="nav">
+      <div class="brand">Sky High Dining</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="menu.html">Menu</a>
+        <a href="booking.html">Booking</a>
+        <a href="admin.html">Admin</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="row">
+        <h1 style="margin:0;font-size:1.4rem">Reservations</h1>
+        <button id="refresh">Refresh</button>
+      </div>
+      <div id="status" class="status">Loading…</div>
+      <table id="table">
+        <thead>
+          <tr>
+            <th>Created</th>
+            <th>Start</th>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Party</th>
+            <th>Experience</th>
+            <th>Status</th>
+            <th>ID</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    window.BOOKING_API_BASE = 'https://sky-high-dining-site.onrender.com';
+    const API = window.BOOKING_API_BASE;
+    const statusEl = document.getElementById('status');
+    const tbody = document.querySelector('#table tbody');
+
+    function fmt(v){ try{return new Date(v).toLocaleString()}catch{return v||''} }
+
+    async function load(){
+      statusEl.textContent = 'Loading…';
+      tbody.innerHTML = '';
+      try{
+        const res = await fetch(`${API}/api/admin/reservations`);
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.error || 'Failed to load');
+        const rows = data.reservations || [];
+        statusEl.textContent = `${rows.length} reservation(s)`;
+        rows.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${fmt(r.created_at)}</td>
+            <td>${fmt(r.reservation_start_at)}</td>
+            <td>${r.customer_name || ''}</td>
+            <td>${r.customer_email || ''}<br>${r.customer_phone || ''}</td>
+            <td>${r.party_size || ''}</td>
+            <td>${r.experience_type || ''}</td>
+            <td><span class="pill">${r.status || ''}</span></td>
+            <td style="font-family:monospace;font-size:.78rem">${r.id}</td>`;
+          tbody.appendChild(tr);
+        });
+      }catch(err){
+        statusEl.textContent = err.message || 'Error loading reservations';
+      }
+    }
+
+    document.getElementById('refresh').addEventListener('click', load);
+    load();
+  </script>
+</body>
+</html>

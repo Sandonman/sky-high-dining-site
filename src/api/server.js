@@ -122,6 +122,21 @@ app.post('/api/booking/submit', async (req, res) => {
   return res.json({ reservationId: result.rows[0].id, status: result.rows[0].status });
 });
 
+app.get('/api/admin/reservations', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `select id, customer_name, customer_email, customer_phone, party_size, experience_type,
+              reservation_start_at, status, created_at
+       from reservations
+       order by created_at desc
+       limit 200`
+    );
+    return res.json({ reservations: result.rows });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to load reservations', detail: e.message });
+  }
+});
+
 app.post('/api/payment/deposit/create', async (req, res) => {
   const { reservationId } = req.body;
   if (!reservationId) return res.status(400).json({ error: 'reservationId is required' });

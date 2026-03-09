@@ -24,6 +24,23 @@
       font-size: 112.5%;
     }
     .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 64px; }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .brand { font-weight: 700; font-size: 1.2rem; letter-spacing: .3px; }
+    .nav a {
+      color: #e2e8f0;
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: .95rem;
+      margin-left: 6px;
+    }
     .hero {
       border: 1px solid var(--line);
       background: rgba(17,24,39,.75);
@@ -117,6 +134,15 @@
 </head>
 <body>
   <main class="wrap">
+    <div class="nav">
+      <div class="brand">Sky High Dining</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="menu.html">Menu</a>
+        <a href="/contact">Contact</a>
+      </div>
+    </div>
+
     <section class="hero">
       <h1>Sky High Dining Menu</h1>
       <p class="sub">One shared entrée for the full party + your selected sides. Curated by time of day for a seamless booking experience.</p>

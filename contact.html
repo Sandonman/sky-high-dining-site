@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sky High Dining | Contact</title>
+  <style>
+    :root { --bg:#0f172a; --text:#f8fafc; --line:#334155; --muted:#94a3b8; --gold:#f59e0b; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, sans-serif;
+      background: linear-gradient(180deg,#020617 0%,#0f172a 100%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 18px 64px; }
+    .nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+    .brand { font-weight: 700; font-size: 1.2rem; }
+    .nav a {
+      color:#e2e8f0; text-decoration:none; border:1px solid var(--line);
+      border-radius:999px; padding:8px 14px; margin-left:6px; font-size:.95rem;
+    }
+    .card {
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(17,24,39,.78);
+      padding:24px;
+    }
+    h1 { margin:0 0 10px; font-size:1.8rem; }
+    p { color: var(--muted); margin: 0 0 18px; }
+    .item { margin: 12px 0; }
+    .label { color:#cbd5e1; font-size:.92rem; }
+    .value { font-size:1.05rem; }
+    .value a { color: var(--gold); text-decoration: none; }
+    .value a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="nav">
+      <div class="brand">Sky High Dining</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="menu.html">Menu</a>
+        <a href="booking.html">Booking</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <h1>Contact Us</h1>
+      <p>Questions, special requests, or private experience inquiries? Reach out and we’ll get back to you.</p>
+
+      <div class="item">
+        <div class="label">Phone</div>
+        <div class="value"><a href="tel:+15551234567">(555) 123-4567</a></div>
+      </div>
+
+      <div class="item">
+        <div class="label">Email</div>
+        <div class="value"><a href="mailto:hello@skyhighdining.com">hello@skyhighdining.com</a></div>
+      </div>
+
+      <div class="item">
+        <div class="label">Instagram</div>
+        <div class="value"><a href="https://www.instagram.com/sky_high_dining/" target="_blank" rel="noopener noreferrer">@sky_high_dining</a></div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

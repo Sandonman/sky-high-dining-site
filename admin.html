@@ -139,6 +139,7 @@
               <strong>Contact:</strong> ${r.customer_email || ''} · ${r.customer_phone || ''}<br>
               <strong>Updated:</strong> ${r.status_updated_at ? fmt(r.status_updated_at) : '—'}<br>
               <strong>ID:</strong> <span style="font-family:monospace">${r.id}</span><br>
+              <strong>Customer Notes:</strong> ${r.notes ? r.notes : '—'}<br>
               <strong>Admin Notes:</strong>
               <input class="note" data-note-id="${r.id}" value="${(r.admin_notes || '').replace(/"/g, '&quot;')}" placeholder="Add note" />
             </td>`;

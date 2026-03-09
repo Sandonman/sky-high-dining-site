@@ -138,7 +138,7 @@ app.get('/api/admin/reservations', async (req, res) => {
   try {
     const result = await pool.query(
       `select id, customer_name, customer_email, customer_phone, party_size, experience_type,
-              reservation_start_at, status, created_at, admin_notes, status_updated_at
+              reservation_start_at, status, created_at, notes, admin_notes, status_updated_at
        from reservations
        order by created_at desc
        limit 200`

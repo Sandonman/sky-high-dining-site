@@ -1,0 +1,17 @@
+{
+  "name": "sky-high-dining-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:api": "node src/api/server.js",
+    "db:init": "psql $DATABASE_URL -f db/schema.sql"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.12.0",
+    "stripe": "^16.9.0"
+  }
+}

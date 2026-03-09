@@ -81,6 +81,8 @@
       font-weight: 700;
       cursor: pointer;
     }
+    button[disabled] { opacity: .6; cursor: not-allowed; }
+    .status { margin-top: 10px; font-size: .95rem; color: #cbd5e1; }
     @media (max-width: 820px) { form { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -100,7 +102,7 @@
       <h1>Booking Request</h1>
       <p class="sub">Start your reservation request here. Final booking confirmation and payment flow will be connected next.</p>
 
-      <form>
+      <form id="booking-form">
         <div class="field">
           <label for="name">Full Name</label>
           <input id="name" name="name" type="text" placeholder="Your name" />
@@ -128,6 +130,10 @@
           <input id="date" name="date" type="date" />
         </div>
         <div class="field">
+          <label for="time">Preferred Start Time</label>
+          <input id="time" name="time" type="time" />
+        </div>
+        <div class="field full">
           <label for="experience">Experience Type</label>
           <select id="experience" name="experience">
             <option value="">Select</option>
@@ -148,7 +154,8 @@
         </div>
 
         <div class="field full">
-          <button type="button">Submit Request</button>
+          <button id="submit-btn" type="submit">Submit Request</button>
+          <div id="status" class="status"></div>
         </div>
       </form>
 
@@ -157,5 +164,76 @@
       </div>
     </section>
   </main>
+
+  <script>
+    const API_BASE = window.location.hostname.includes('github.io')
+      ? 'http://localhost:8787'
+      : '';
+
+    const form = document.getElementById('booking-form');
+    const statusEl = document.getElementById('status');
+    const submitBtn = document.getElementById('submit-btn');
+
+    const setStatus = (text, isError = false) => {
+      statusEl.textContent = text;
+      statusEl.style.color = isError ? '#fca5a5' : '#cbd5e1';
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setStatus('Submitting request...');
+      submitBtn.disabled = true;
+
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const party = Number(document.getElementById('party').value);
+      const date = document.getElementById('date').value;
+      const time = document.getElementById('time').value;
+      const experience = document.getElementById('experience').value;
+      const notes = document.getElementById('notes').value.trim();
+
+      if (!name || !phone || !email || !party || !date || !time || !experience) {
+        setStatus('Please complete all required fields.', true);
+        submitBtn.disabled = false;
+        return;
+      }
+
+      const startAt = `${date}T${time}:00-07:00`;
+
+      try {
+        const holdRes = await fetch(`${API_BASE}/api/booking/hold`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ startAt, experienceType: experience, partySize: party })
+        });
+        const holdData = await holdRes.json();
+        if (!holdRes.ok) throw new Error(holdData.error || 'Failed to create hold');
+
+        const submitRes = await fetch(`${API_BASE}/api/booking/submit`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            holdId: holdData.holdId,
+            startAt,
+            experienceType: experience,
+            partySize: party,
+            customer: { name, email, phone },
+            notes,
+            menu: { tier: null, entreeChoice: null, sides: [], extraSidesCount: 0 }
+          })
+        });
+        const submitData = await submitRes.json();
+        if (!submitRes.ok) throw new Error(submitData.error || 'Failed to submit booking');
+
+        setStatus(`Request saved. Reservation ID: ${submitData.reservationId} (status: ${submitData.status})`);
+        form.reset();
+      } catch (err) {
+        setStatus(err.message || 'Something went wrong. Try again.', true);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
 </body>
 </html>

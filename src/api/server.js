@@ -8,7 +8,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL?.includes('supabase.co') ? { rejectUnauthorized: false } : undefined
+});
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 const PORT = process.env.PORT || 8787;

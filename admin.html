@@ -58,14 +58,10 @@
             <th>Created</th>
             <th>Start</th>
             <th>Name</th>
-            <th>Contact</th>
             <th>Party</th>
             <th>Experience</th>
             <th>Status</th>
-            <th>Updated</th>
-            <th>Admin Notes</th>
             <th>Actions</th>
-            <th>ID</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -121,25 +117,32 @@
         const rows = data.reservations || [];
         statusEl.textContent = `${rows.length} reservation(s)`;
         rows.forEach(r => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
+          const trMain = document.createElement('tr');
+          trMain.innerHTML = `
             <td>${fmt(r.created_at)}</td>
             <td>${fmt(r.reservation_start_at)}</td>
             <td>${r.customer_name || ''}</td>
-            <td>${r.customer_email || ''}<br>${r.customer_phone || ''}</td>
             <td>${r.party_size || ''}</td>
             <td>${r.experience_type || ''}</td>
             <td><span class="pill">${r.status || ''}</span></td>
-            <td>${r.status_updated_at ? fmt(r.status_updated_at) : ''}</td>
-            <td><input class="note" data-note-id="${r.id}" value="${(r.admin_notes || '').replace(/"/g, '&quot;')}" placeholder="Add note" /></td>
             <td>
               <div class="actions">
                 <button class="approve" data-id="${r.id}" data-status="confirmed">Approve</button>
                 <button class="reject" data-id="${r.id}" data-status="cancelled">Reject</button>
               </div>
-            </td>
-            <td style="font-family:monospace;font-size:.78rem">${r.id}</td>`;
-          tbody.appendChild(tr);
+            </td>`;
+          tbody.appendChild(trMain);
+
+          const trDetail = document.createElement('tr');
+          trDetail.innerHTML = `
+            <td colspan="7" style="background:#0b1220;color:#cbd5e1;font-size:.85rem;line-height:1.5">
+              <strong>Contact:</strong> ${r.customer_email || ''} · ${r.customer_phone || ''}<br>
+              <strong>Updated:</strong> ${r.status_updated_at ? fmt(r.status_updated_at) : '—'}<br>
+              <strong>ID:</strong> <span style="font-family:monospace">${r.id}</span><br>
+              <strong>Admin Notes:</strong>
+              <input class="note" data-note-id="${r.id}" value="${(r.admin_notes || '').replace(/"/g, '&quot;')}" placeholder="Add note" />
+            </td>`;
+          tbody.appendChild(trDetail);
         });
 
         tbody.querySelectorAll('button[data-id]').forEach(btn => {

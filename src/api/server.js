@@ -14,6 +14,37 @@ const pool = new Pool({
 });
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
+async function sendEmail({ to, subject, html }) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return;
+
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+        to,
+        subject,
+        html
+      })
+    });
+  } catch (e) {
+    console.error('Email send failed:', e.message);
+  }
+}
+
+function formatReservationDate(iso) {
+  try {
+    return new Date(iso).toLocaleString('en-US', { timeZone: 'America/Phoenix' });
+  } catch {
+    return iso;
+  }
+}
+
 const PORT = process.env.PORT || 8787;
 const HOLD_MINUTES = 10;
 const DURATION_MINUTES = 90;
@@ -119,6 +150,20 @@ app.post('/api/booking/submit', async (req, res) => {
     [result.rows[0].id, holdId]
   );
 
+  const whenText = formatReservationDate(startAt);
+  const statusText = result.rows[0].status === 'pending_staff_approval' ? 'pending staff approval' : 'pending';
+  await sendEmail({
+    to: customer.email,
+    subject: 'Sky High Dining reservation received',
+    html: `
+      <p>Hi ${customer.name},</p>
+      <p>We received your reservation request for <strong>${whenText}</strong>.</p>
+      <p>Current status: <strong>${statusText}</strong>.</p>
+      <p>Reservation ID: <code>${result.rows[0].id}</code></p>
+      <p>We’ll email you again once this is approved or declined.</p>
+    `
+  });
+
   return res.json({ reservationId: result.rows[0].id, status: result.rows[0].status });
 });
 
@@ -167,7 +212,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
            admin_notes = $2,
            status_updated_at = now()
        where id = $3
-       returning id, status, admin_notes, status_updated_at`,
+       returning id, status, admin_notes, status_updated_at, customer_name, customer_email, reservation_start_at`,
       [status, adminNotes || null, id]
     );
 
@@ -175,7 +220,32 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
       return res.status(404).json({ error: 'Reservation not found' });
     }
 
-    return res.json({ ok: true, reservation: result.rows[0] });
+    const reservation = result.rows[0];
+    const whenText = formatReservationDate(reservation.reservation_start_at);
+
+    if (reservation.status === 'confirmed') {
+      await sendEmail({
+        to: reservation.customer_email,
+        subject: 'Sky High Dining reservation approved',
+        html: `
+          <p>Hi ${reservation.customer_name},</p>
+          <p>Great news — your reservation for <strong>${whenText}</strong> has been <strong>approved</strong>.</p>
+          <p>Reservation ID: <code>${reservation.id}</code></p>
+        `
+      });
+    } else if (reservation.status === 'cancelled') {
+      await sendEmail({
+        to: reservation.customer_email,
+        subject: 'Sky High Dining reservation update',
+        html: `
+          <p>Hi ${reservation.customer_name},</p>
+          <p>Your reservation request for <strong>${whenText}</strong> was not approved at this time.</p>
+          <p>Reservation ID: <code>${reservation.id}</code></p>
+        `
+      });
+    }
+
+    return res.json({ ok: true, reservation });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to update reservation', detail: e.message });
   }

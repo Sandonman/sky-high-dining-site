@@ -154,7 +154,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
 
   const { id } = req.params;
   const { status } = req.body;
-  const allowed = new Set(['pending', 'pending_staff_approval', 'confirmed', 'rejected', 'cancelled']);
+  const allowed = new Set(['pending', 'pending_staff_approval', 'confirmed', 'cancelled']);
 
   if (!status || !allowed.has(status)) {
     return res.status(400).json({ error: 'Invalid status' });

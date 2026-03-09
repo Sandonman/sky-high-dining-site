@@ -67,10 +67,14 @@
       width: 100%;
       height: 125px;
       object-fit: cover;
+      object-position: center center;
       border-radius: 10px;
       border: 1px solid #374151;
       display: block;
     }
+    .img-sub-sandwich { object-position: center 62%; }
+    .img-pulled-pork { object-position: center 55%; }
+    .img-filet { object-position: center 58%; }
     @media (max-width: 900px) {
       .menu-layout { grid-template-columns: 1fr; }
       .menu-media { grid-template-columns: 1fr; }
@@ -183,13 +187,13 @@
             <img src="https://images.unsplash.com/photo-1611250188496-e966043a0629?auto=format&fit=crop&w=1200&q=80" alt="Chicken taco platter" title="Chicken taco platter" />
           </figure>
           <figure>
-            <img src="https://images.unsplash.com/photo-1521305916504-4a1121188589?auto=format&fit=crop&w=1200&q=80" alt="Pulled pork sandwich board" title="Pulled pork sandwich board" />
+            <img class="img-pulled-pork" src="https://images.unsplash.com/photo-1521305916504-4a1121188589?auto=format&fit=crop&w=1200&q=80" alt="Pulled pork sandwich board" title="Pulled pork sandwich board" />
           </figure>
           <figure>
-            <img src="images/sub-sandwich.jpg" alt="Sub sandwich with ham turkey lettuce tomato and onion" title="Sub sandwich with ham turkey lettuce tomato and onion" />
+            <img class="img-sub-sandwich" src="images/sub-sandwich.jpg" alt="Sub sandwich with ham turkey lettuce tomato and onion" title="Sub sandwich with ham turkey lettuce tomato and onion" />
           </figure>
           <figure>
-            <img src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet mignon with baked potato and dinner roll" />
+            <img class="img-filet" src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet mignon with baked potato and dinner roll" />
           </figure>
         </div>
         </div>
@@ -235,7 +239,7 @@
             <img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=1200&q=80" alt="BBQ chicken platter" title="BBQ chicken platter" />
           </figure>
           <figure>
-            <img src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet mignon with baked potato and dinner roll" />
+            <img class="img-filet" src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet mignon with baked potato and dinner roll" />
           </figure>
         </div>
         </div>

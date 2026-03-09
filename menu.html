@@ -59,37 +59,46 @@
       margin: 0;
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-auto-rows: 116px;
       gap: 6px;
       align-content: start;
     }
-    .menu-media figure { margin: 0; }
+    .menu-media figure { margin: 0; height: 100%; }
     .menu-media img {
       width: 100%;
-      height: 128px;
+      height: 100%;
       object-fit: cover;
       object-position: center center;
       border-radius: 10px;
       border: 1px solid #374151;
       display: block;
     }
-    .menu-media figure.premium-image {
-      grid-row: span 2;
-    }
-    .menu-media figure.premium-image.premium-right {
-      grid-column: 2;
-    }
-    .menu-media figure.premium-image img {
-      height: 262px;
-    }
+    .col-left { grid-column: 1; }
+    .col-right { grid-column: 2; }
+    .row-1 { grid-row: 1; }
+    .row-2 { grid-row: 2; }
+    .row-3 { grid-row: 3; }
+    .span-2 { grid-row: span 2; }
+    .img-column-3 { grid-auto-rows: 108px; }
+    .img-column-3 figure.span-2 { grid-row: 2 / span 2; }
     .img-sub-sandwich { object-position: center 62%; }
     .img-pulled-pork { object-position: center 55%; }
     .img-filet { object-position: center 58%; }
     @media (max-width: 900px) {
       .menu-layout { grid-template-columns: 1fr; }
-      .menu-media { grid-template-columns: 1fr; }
-      .menu-media figure.premium-image { grid-row: auto; }
+      .menu-media,
+      .img-column-3 {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+      }
+      .menu-media figure,
+      .img-column-3 figure {
+        grid-column: auto;
+        grid-row: auto;
+        height: auto;
+      }
       .menu-media img,
-      .menu-media figure.premium-image img { height: 190px; }
+      .img-column-3 img { height: 190px; }
     }
     h2 { margin: 0 0 8px; font-size: 1.55rem; }
     h3 { margin: 12px 0 8px; font-size: 1.2rem; color: #fde68a; }
@@ -148,13 +157,13 @@
         </ul>
         </div>
         <div class="menu-media">
-          <figure>
+          <figure class="col-left row-1">
             <img src="images/breakfast-plate.jpg" alt="Classic breakfast platter with scrambled eggs bacon and toast" title="Classic Breakfast Platter" />
           </figure>
-          <figure>
+          <figure class="col-left row-2">
             <img src="images/breakfast-burrito.jpg" alt="Breakfast burrito with eggs and potatoes" title="Breakfast Burrito Board" />
           </figure>
-          <figure class="premium-image premium-right">
+          <figure class="col-right row-1 span-2">
             <img src="images/steak-and-eggs.jpg" alt="Steak and eggs with sunny side up eggs" title="Steak &amp; Eggs Platter" />
           </figure>
         </div>
@@ -190,20 +199,20 @@
           <li>Chips &amp; salsa</li>
         </ul>
         </div>
-        <div class="menu-media">
-          <figure>
+        <div class="menu-media img-column-3">
+          <figure class="col-left row-1">
             <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80" alt="Burger cheeseburger board" title="Burger/Cheeseburger Board" />
           </figure>
-          <figure>
+          <figure class="col-left row-2">
             <img src="https://images.unsplash.com/photo-1611250188496-e966043a0629?auto=format&fit=crop&w=1200&q=80" alt="Chicken taco platter" title="Chicken Taco Platter" />
           </figure>
-          <figure>
+          <figure class="col-left row-3">
             <img class="img-pulled-pork" src="https://images.unsplash.com/photo-1521305916504-4a1121188589?auto=format&fit=crop&w=1200&q=80" alt="Pulled pork sandwich board" title="Pulled Pork Sandwich Board" />
           </figure>
-          <figure>
+          <figure class="col-right row-1">
             <img class="img-sub-sandwich" src="images/sub-sandwich.jpg" alt="Sub sandwich with ham turkey lettuce tomato and onion" title="Sub Sandwiches" />
           </figure>
-          <figure class="premium-image premium-right">
+          <figure class="col-right span-2">
             <img class="img-filet" src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet Mignon Platter" />
           </figure>
         </div>

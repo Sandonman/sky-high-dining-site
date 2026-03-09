@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sky High Dining | Menu</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #f8fafc;
+      --line: #334155;
+      --accent: #f59e0b;
+      --accent2: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 64px; }
+    .hero {
+      border: 1px solid var(--line);
+      background: rgba(17,24,39,.75);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+    h1 { margin: 0 0 8px; font-size: 2rem; }
+    .sub { color: var(--muted); margin: 0; }
+    .pillrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .pill {
+      border: 1px solid var(--line);
+      background: #0b1220;
+      color: #cbd5e1;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: .9rem;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 14px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(15,23,42,.8);
+      padding: 18px;
+    }
+    h2 { margin: 0 0 6px; font-size: 1.2rem; }
+    h3 { margin: 14px 0 6px; font-size: 1rem; color: #fde68a; }
+    ul { margin: 6px 0 0 18px; padding: 0; }
+    .small { color: var(--muted); font-size: .95rem; }
+    .price { font-weight: 700; color: #86efac; }
+    .rule {
+      margin-top: 16px;
+      padding: 14px;
+      border: 1px dashed #475569;
+      border-radius: 12px;
+      background: rgba(2,6,23,.45);
+    }
+    .footer-note { margin-top: 16px; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Sky High Dining Menu</h1>
+      <p class="sub">One shared entrée for the full party + your selected sides. Curated by time of day for a seamless booking experience.</p>
+      <div class="pillrow">
+        <span class="pill">Standard: <span class="price">$49.99 / person</span></span>
+        <span class="pill">Premium: <span class="price">$64.99 / person</span></span>
+        <span class="pill">Standard includes 2 sides</span>
+        <span class="pill">Premium includes 3 sides</span>
+        <span class="pill">Extra side: +$5 / person / side</span>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Shared Breakfast Menu</h2>
+        <p class="small">Used for Sunrise, Breakfast, and Brunch bookings.</p>
+
+        <h3>Standard Entrées (choose 1)</h3>
+        <ul>
+          <li>Classic Breakfast Platter</li>
+          <li>Breakfast Burrito Board</li>
+        </ul>
+
+        <h3>Premium Entrées (choose 1)</h3>
+        <ul>
+          <li>Steak &amp; Eggs Platter</li>
+        </ul>
+
+        <h3>Universal Breakfast Sides</h3>
+        <ul>
+          <li>Breakfast potatoes</li>
+          <li>Seasonal fruit</li>
+          <li>Bacon</li>
+          <li>Sausage</li>
+          <li>Pastry basket</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Shared Lunch Menu</h2>
+        <p class="small">Used for Brunch and Lunch bookings.</p>
+
+        <h3>Standard Entrées (choose 1)</h3>
+        <ul>
+          <li>Burger/Cheeseburger Board</li>
+          <li>Chicken Taco Platter</li>
+          <li>Pulled Pork Sandwich Board</li>
+          <li>Sub Sandwiches</li>
+        </ul>
+
+        <h3>Premium Entrées (choose 1)</h3>
+        <ul>
+          <li>Filet Mignon Platter</li>
+        </ul>
+
+        <h3>Universal Lunch Sides</h3>
+        <ul>
+          <li>Fries</li>
+          <li>House chips</li>
+          <li>Coleslaw</li>
+          <li>Rice &amp; beans</li>
+          <li>Garden salad</li>
+          <li>Chips &amp; salsa</li>
+        </ul>
+      </article>
+
+      <article class="card">
+        <h2>Shared Dinner Menu</h2>
+        <p class="small">Used for Dinner, Sunset Dinner, and Late Night bookings.</p>
+
+        <h3>Standard Entrées (choose 1)</h3>
+        <ul>
+          <li>Street Taco Platter (chicken or pork)</li>
+          <li>BBQ Chicken Platter</li>
+          <li>Burger/Cheeseburger Board</li>
+        </ul>
+
+        <h3>Premium Entrées (choose 1)</h3>
+        <ul>
+          <li>Filet Mignon Platter</li>
+        </ul>
+
+        <h3>Universal Dinner Sides</h3>
+        <ul>
+          <li>Rice &amp; beans</li>
+          <li>Baked potato</li>
+          <li>Roasted vegetables</li>
+          <li>Caesar salad</li>
+          <li>Chips &amp; salsa</li>
+          <li>Fresh-baked bread</li>
+          <li>House salad</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="rule">
+      <strong>Booking rule:</strong> each reservation selects one shared entrée for the entire party and then chooses sides from that daypart's side list.
+    </section>
+
+    <p class="footer-note">Custom bookings are staff-approved and can be mapped to any of the above menu groups.</p>
+  </main>
+</body>
+</html>

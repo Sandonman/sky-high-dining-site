@@ -122,12 +122,18 @@ app.post('/api/booking/submit', async (req, res) => {
   return res.json({ reservationId: result.rows[0].id, status: result.rows[0].status });
 });
 
-app.get('/api/admin/reservations', async (req, res) => {
+function requireAdmin(req, res) {
   const adminKey = process.env.ADMIN_API_KEY;
   const provided = req.header('x-admin-key');
   if (!adminKey || provided !== adminKey) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    res.status(401).json({ error: 'Unauthorized' });
+    return false;
   }
+  return true;
+}
+
+app.get('/api/admin/reservations', async (req, res) => {
+  if (!requireAdmin(req, res)) return;
 
   try {
     const result = await pool.query(
@@ -140,6 +146,36 @@ app.get('/api/admin/reservations', async (req, res) => {
     return res.json({ reservations: result.rows });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to load reservations', detail: e.message });
+  }
+});
+
+app.post('/api/admin/reservations/:id/status', async (req, res) => {
+  if (!requireAdmin(req, res)) return;
+
+  const { id } = req.params;
+  const { status } = req.body;
+  const allowed = new Set(['pending', 'pending_staff_approval', 'confirmed', 'rejected', 'cancelled']);
+
+  if (!status || !allowed.has(status)) {
+    return res.status(400).json({ error: 'Invalid status' });
+  }
+
+  try {
+    const result = await pool.query(
+      `update reservations
+       set status = $1
+       where id = $2
+       returning id, status`,
+      [status, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Reservation not found' });
+    }
+
+    return res.json({ ok: true, reservation: result.rows[0] });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to update reservation', detail: e.message });
   }
 });
 

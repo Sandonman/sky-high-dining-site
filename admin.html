@@ -22,6 +22,10 @@
     th,td{border-bottom:1px solid #253245;padding:10px 8px;text-align:left;vertical-align:top}
     th{color:#cbd5e1}
     .pill{display:inline-block;border:1px solid #475569;border-radius:999px;padding:2px 8px;font-size:.78rem;color:#cbd5e1}
+    .actions{display:flex;gap:6px}
+    .actions button{padding:6px 8px;border-radius:8px;font-size:.78rem}
+    .approve{background:#16a34a;color:#fff}
+    .reject{background:#dc2626;color:#fff}
     @media (max-width:860px){table{display:block;overflow:auto;white-space:nowrap}}
   </style>
 </head>
@@ -57,6 +61,7 @@
             <th>Party</th>
             <th>Experience</th>
             <th>Status</th>
+            <th>Actions</th>
             <th>ID</th>
           </tr>
         </thead>
@@ -74,6 +79,24 @@
 
     function fmt(v){ try{return new Date(v).toLocaleString()}catch{return v||''} }
     function getKey(){ return sessionStorage.getItem('admin_api_key') || ''; }
+
+    async function setStatus(id, status){
+      const key = getKey();
+      if (!key) return;
+      statusEl.textContent = `Updating ${id}...`;
+      try {
+        const res = await fetch(`${API}/api/admin/reservations/${id}/status`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json', 'x-admin-key': key },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Update failed');
+        await load();
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to update status';
+      }
+    }
 
     async function load(){
       const key = getKey();
@@ -102,8 +125,18 @@
             <td>${r.party_size || ''}</td>
             <td>${r.experience_type || ''}</td>
             <td><span class="pill">${r.status || ''}</span></td>
+            <td>
+              <div class="actions">
+                <button class="approve" data-id="${r.id}" data-status="confirmed">Approve</button>
+                <button class="reject" data-id="${r.id}" data-status="rejected">Reject</button>
+              </div>
+            </td>
             <td style="font-family:monospace;font-size:.78rem">${r.id}</td>`;
           tbody.appendChild(tr);
+        });
+
+        tbody.querySelectorAll('button[data-id]').forEach(btn => {
+          btn.addEventListener('click', () => setStatus(btn.dataset.id, btn.dataset.status));
         });
       }catch(err){
         statusEl.textContent = err.message || 'Error loading reservations';

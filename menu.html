@@ -65,7 +65,7 @@
     .menu-media figure { margin: 0; }
     .menu-media img {
       width: 100%;
-      height: 110px;
+      height: 128px;
       object-fit: cover;
       object-position: center center;
       border-radius: 10px;
@@ -75,8 +75,11 @@
     .menu-media figure.premium-image {
       grid-row: span 2;
     }
+    .menu-media figure.premium-image.premium-right {
+      grid-column: 2;
+    }
     .menu-media figure.premium-image img {
-      height: 226px;
+      height: 262px;
     }
     .img-sub-sandwich { object-position: center 62%; }
     .img-pulled-pork { object-position: center 55%; }
@@ -151,7 +154,7 @@
           <figure>
             <img src="images/breakfast-burrito.jpg" alt="Breakfast burrito with eggs and potatoes" title="Breakfast burrito with eggs and potatoes" />
           </figure>
-          <figure class="premium-image">
+          <figure class="premium-image premium-right">
             <img src="images/steak-and-eggs.jpg" alt="Steak and eggs with sunny side up eggs" title="Steak and eggs with sunny side up eggs" />
           </figure>
         </div>
@@ -200,7 +203,7 @@
           <figure>
             <img class="img-sub-sandwich" src="images/sub-sandwich.jpg" alt="Sub sandwich with ham turkey lettuce tomato and onion" title="Sub sandwich with ham turkey lettuce tomato and onion" />
           </figure>
-          <figure class="premium-image">
+          <figure class="premium-image premium-right">
             <img class="img-filet" src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet mignon with baked potato and dinner roll" />
           </figure>
         </div>

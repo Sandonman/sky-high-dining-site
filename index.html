@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sky High Dining | Menu</title>
+  <title>Sky High Dining</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -11,8 +11,7 @@
       --muted: #94a3b8;
       --text: #f8fafc;
       --line: #334155;
-      --accent: #f59e0b;
-      --accent2: #22c55e;
+      --gold: #f59e0b;
     }
     * { box-sizing: border-box; }
     body {
@@ -20,257 +19,88 @@
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
       background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
       color: var(--text);
-      line-height: 1.55;
-      font-size: 112.5%;
+      line-height: 1.6;
     }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 18px 64px; }
-    .hero {
-      border: 1px solid var(--line);
-      background: rgba(17,24,39,.75);
-      border-radius: 16px;
-      padding: 24px;
+    .wrap { max-width: 1060px; margin: 0 auto; padding: 24px 18px 72px; }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
       margin-bottom: 18px;
     }
-    h1 { margin: 0 0 8px; font-size: 2.2rem; }
-    .sub { color: var(--muted); margin: 0; font-size: 1.05rem; }
-    .pillrow { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
-    .pill {
+    .brand { font-weight: 700; font-size: 1.2rem; letter-spacing: .3px; }
+    .nav a {
+      color: #e2e8f0;
+      text-decoration: none;
       border: 1px solid var(--line);
-      background: #0b1220;
-      color: #cbd5e1;
       border-radius: 999px;
-      padding: 8px 12px;
-      font-size: .88rem;
+      padding: 8px 14px;
+      font-size: .95rem;
     }
-    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 30px 24px;
+      background: rgba(17,24,39,.78);
+    }
+    h1 { margin: 0 0 10px; font-size: 2.3rem; }
+    .lead { color: #cbd5e1; margin: 0 0 20px; font-size: 1.06rem; }
+    .cta {
+      display: inline-block;
+      background: var(--gold);
+      color: #111827;
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 11px 16px;
+    }
+    .grid {
+      margin-top: 16px;
+      display: grid;
+      gap: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
     .card {
       border: 1px solid var(--line);
       border-radius: 14px;
-      background: rgba(15,23,42,.8);
       padding: 18px;
+      background: rgba(15,23,42,.82);
     }
-    .menu-layout {
-      display: grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap: 12px;
-      align-items: start;
-    }
-    .menu-media {
-      margin: 0;
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-auto-rows: 162px;
-      gap: 6px;
-      align-content: start;
-    }
-    .menu-media figure { margin: 0; height: 100%; }
-    .menu-media img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      border-radius: 10px;
-      border: 1px solid #374151;
-      display: block;
-    }
-    .col-left { grid-column: 1; }
-    .col-right { grid-column: 2; }
-    .row-1 { grid-row: 1; }
-    .row-2 { grid-row: 2; }
-    .row-3 { grid-row: 3; }
-    .span-2 { grid-row: span 2; }
-    .img-column-3 { grid-auto-rows: 151px; }
-    .img-column-3 figure.span-2 { grid-row: 2 / span 2; }
-    .img-sub-sandwich { object-position: center 62%; }
-    .img-pulled-pork { object-position: center 55%; }
-    .img-filet { object-position: center 58%; }
-    @media (max-width: 900px) {
-      .menu-layout { grid-template-columns: 1fr; }
-      .menu-media,
-      .img-column-3 {
-        grid-template-columns: 1fr;
-        grid-auto-rows: auto;
-      }
-      .menu-media figure,
-      .img-column-3 figure {
-        grid-column: auto;
-        grid-row: auto;
-        height: auto;
-      }
-      .menu-media img,
-      .img-column-3 img { height: 190px; }
-    }
-    h2 { margin: 0 0 8px; font-size: 1.55rem; }
-    h3 { margin: 12px 0 8px; font-size: 1.2rem; color: #fde68a; }
-    ul { margin: 8px 0 0 22px; padding: 0; font-size: 1.05rem; }
-    .small { color: var(--muted); font-size: 1rem; }
-    .price { font-weight: 700; color: #86efac; }
-    .rule {
-      margin-top: 16px;
-      padding: 14px;
-      border: 1px dashed #475569;
-      border-radius: 12px;
-      background: rgba(2,6,23,.45);
-    }
-    .footer-note { margin-top: 16px; color: #cbd5e1; }
+    h2 { margin: 0 0 8px; font-size: 1.25rem; color: #fde68a; }
+    p { margin: 0; color: #dbe3ef; }
+    .footer { margin-top: 18px; color: var(--muted); }
   </style>
 </head>
 <body>
   <main class="wrap">
-    <section class="hero">
-      <h1>Sky High Dining Menu</h1>
-      <p class="sub">One shared entrée for the full party + your selected sides. Curated by time of day for a seamless booking experience.</p>
-      <div class="pillrow">
-        <span class="pill">Standard: <span class="price">$49.99 / person</span></span>
-        <span class="pill">Premium: <span class="price">$64.99 / person</span></span>
-        <span class="pill">Standard includes 2 sides</span>
-        <span class="pill">Premium includes 3 sides</span>
-        <span class="pill">Extra side: +$5 / person / side</span>
+    <div class="nav">
+      <div class="brand">Sky High Dining</div>
+      <div>
+        <a href="menu.html">View Menu</a>
+        <a href="/contact">Contact</a>
       </div>
+    </div>
+
+    <section class="hero">
+      <h1>Sky High Dining</h1>
+      <p class="lead">Sky High Dining creates unforgettable elevated dining experiences by combining breathtaking locations with a custom-built platform that rises above the ordinary.</p>
+      <p class="lead">We specialize in turning meaningful moments into once-in-a-lifetime memories through exclusive, private experiences unlike anything else in Arizona.</p>
+      <a class="cta" href="menu.html">Explore Dining Options</a>
     </section>
 
     <section class="grid">
       <article class="card">
-        <h2>Breakfast Menu</h2>
-        <p class="small">Used for Sunrise, Breakfast, and Brunch bookings.</p>
-        <div class="menu-layout">
-        <div>
-
-        <h3>Standard Entrées</h3>
-        <ul>
-          <li>Classic Breakfast Platter</li>
-          <li>Breakfast Burrito Board</li>
-        </ul>
-
-        <h3>Premium Entrées</h3>
-        <ul>
-          <li>Steak &amp; Eggs Platter</li>
-        </ul>
-
-        <h3>Breakfast Sides</h3>
-        <ul>
-          <li>Breakfast potatoes</li>
-          <li>Seasonal fruit</li>
-          <li>Bacon</li>
-          <li>Sausage</li>
-          <li>Pastry basket</li>
-        </ul>
-        </div>
-        <div class="menu-media">
-          <figure class="col-left row-1">
-            <img src="images/breakfast-plate.jpg" alt="Classic breakfast platter with scrambled eggs bacon and toast" title="Classic Breakfast Platter" />
-          </figure>
-          <figure class="col-left row-2">
-            <img src="images/breakfast-burrito.jpg" alt="Breakfast burrito with eggs and potatoes" title="Breakfast Burrito Board" />
-          </figure>
-          <figure class="col-right row-1 span-2">
-            <img src="images/steak-and-eggs.jpg" alt="Steak and eggs with sunny side up eggs" title="Steak &amp; Eggs Platter" />
-          </figure>
-        </div>
-        </div>
+        <h2>Elevated Experience</h2>
+        <p>Each experience places you and your guests on a private dining platform that lifts 33 feet into the air, offering panoramic views and an atmosphere that simply cannot be replicated at ground level.</p>
       </article>
-
       <article class="card">
-        <h2>Lunch Menu</h2>
-        <p class="small">Used for Brunch and Lunch bookings.</p>
-        <div class="menu-layout">
-        <div>
-
-        <h3>Standard Entrées</h3>
-        <ul>
-          <li>Burger/Cheeseburger Board</li>
-          <li>Chicken Taco Platter</li>
-          <li>Pulled Pork Sandwich Board</li>
-          <li>Sub Sandwiches</li>
-        </ul>
-
-        <h3>Premium Entrées</h3>
-        <ul>
-          <li>Filet Mignon Platter</li>
-        </ul>
-
-        <h3>Lunch Sides</h3>
-        <ul>
-          <li>Fries</li>
-          <li>House chips</li>
-          <li>Coleslaw</li>
-          <li>Rice &amp; beans</li>
-          <li>Garden salad</li>
-          <li>Chips &amp; salsa</li>
-        </ul>
-        </div>
-        <div class="menu-media img-column-3">
-          <figure class="col-left row-1">
-            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80" alt="Burger cheeseburger board" title="Burger/Cheeseburger Board" />
-          </figure>
-          <figure class="col-left row-2">
-            <img src="https://images.unsplash.com/photo-1611250188496-e966043a0629?auto=format&fit=crop&w=1200&q=80" alt="Chicken taco platter" title="Chicken Taco Platter" />
-          </figure>
-          <figure class="col-left row-3">
-            <img class="img-pulled-pork" src="https://images.unsplash.com/photo-1521305916504-4a1121188589?auto=format&fit=crop&w=1200&q=80" alt="Pulled pork sandwich board" title="Pulled Pork Sandwich Board" />
-          </figure>
-          <figure class="col-right row-1">
-            <img class="img-sub-sandwich" src="images/sub-sandwich.jpg" alt="Sub sandwich with ham turkey lettuce tomato and onion" title="Sub Sandwiches" />
-          </figure>
-          <figure class="col-right span-2">
-            <img class="img-filet" src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet Mignon Platter" />
-          </figure>
-        </div>
-        </div>
-      </article>
-
-      <article class="card">
-        <h2>Dinner Menu</h2>
-        <p class="small">Used for Dinner, Sunset Dinner, and Late Night bookings.</p>
-        <div class="menu-layout">
-        <div>
-
-        <h3>Standard Entrées</h3>
-        <ul>
-          <li>Street Taco Platter (chicken or pork)</li>
-          <li>BBQ Chicken Platter</li>
-          <li>Burger/Cheeseburger Board</li>
-        </ul>
-
-        <h3>Premium Entrées</h3>
-        <ul>
-          <li>Filet Mignon Platter</li>
-        </ul>
-
-        <h3>Dinner Sides</h3>
-        <ul>
-          <li>Rice &amp; beans</li>
-          <li>Baked potato</li>
-          <li>Roasted vegetables</li>
-          <li>Caesar salad</li>
-          <li>Chips &amp; salsa</li>
-          <li>Fresh-baked bread</li>
-          <li>House salad</li>
-        </ul>
-        </div>
-        <div class="menu-media">
-          <figure>
-            <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80" alt="Burger cheeseburger board" title="Burger/Cheeseburger Board" />
-          </figure>
-          <figure>
-            <img src="https://images.unsplash.com/photo-1611250188496-e966043a0629?auto=format&fit=crop&w=1200&q=80" alt="Street taco platter" title="Street Taco Platter (chicken or pork)" />
-          </figure>
-          <figure>
-            <img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=1200&q=80" alt="BBQ chicken platter" title="BBQ Chicken Platter" />
-          </figure>
-          <figure>
-            <img class="img-filet" src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet Mignon Platter" />
-          </figure>
-        </div>
-        </div>
+        <h2>Perfect for Special Moments</h2>
+        <p>From sunset proposals to milestone celebrations and corporate gatherings, Sky High Dining transforms ordinary occasions into extraordinary moments.</p>
       </article>
     </section>
 
-    <section class="rule">
-      <strong>Booking rule:</strong> each reservation selects one shared entrée for the entire party and then chooses sides from that daypart's side list.
-    </section>
-
-    <p class="footer-note">Custom bookings are staff-approved and can be mapped to any of the above menu groups.</p>
+    <p class="footer">Ready to plan your event? Use the Contact page to start your reservation request.</p>
   </main>
 </body>
 </html>

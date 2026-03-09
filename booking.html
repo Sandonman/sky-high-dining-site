@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sky High Dining | Booking</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --muted: #94a3b8;
+      --text: #f8fafc;
+      --line: #334155;
+      --gold: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 24px 18px 64px; }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .brand { font-weight: 700; font-size: 1.2rem; letter-spacing: .3px; }
+    .nav a {
+      color: #e2e8f0;
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: .95rem;
+      margin-left: 6px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(17,24,39,.78);
+      padding: 24px;
+    }
+    h1 { margin: 0 0 8px; font-size: 2rem; }
+    .sub { color: #cbd5e1; margin: 0 0 16px; }
+    form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .full { grid-column: 1 / -1; }
+    label { font-size: .92rem; color: #dbe3ef; }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #0b1220;
+      color: #f8fafc;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+    }
+    textarea { min-height: 100px; resize: vertical; }
+    .note {
+      margin-top: 14px;
+      border: 1px dashed #475569;
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+    button {
+      background: var(--gold);
+      color: #111827;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    @media (max-width: 820px) { form { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="nav">
+      <div class="brand">Sky High Dining</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="menu.html">Menu</a>
+        <a href="booking.html">Booking</a>
+        <a href="/contact">Contact</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <h1>Booking Request</h1>
+      <p class="sub">Start your reservation request here. Final booking confirmation and payment flow will be connected next.</p>
+
+      <form>
+        <div class="field">
+          <label for="name">Full Name</label>
+          <input id="name" name="name" type="text" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="phone">Phone Number</label>
+          <input id="phone" name="phone" type="tel" placeholder="(555) 555-5555" />
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label for="party">Party Size</label>
+          <select id="party" name="party">
+            <option value="">Select</option>
+            <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
+            <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="date">Preferred Date</label>
+          <input id="date" name="date" type="date" />
+        </div>
+        <div class="field">
+          <label for="experience">Experience Type</label>
+          <select id="experience" name="experience">
+            <option value="">Select</option>
+            <option>Sunrise Breakfast</option>
+            <option>Breakfast</option>
+            <option>Brunch</option>
+            <option>Lunch</option>
+            <option>Dinner</option>
+            <option>Sunset Dinner</option>
+            <option>Late Night</option>
+            <option>Custom Booking (Staff Approval)</option>
+          </select>
+        </div>
+
+        <div class="field full">
+          <label for="notes">Notes / Occasion</label>
+          <textarea id="notes" name="notes" placeholder="Proposal, birthday, dietary notes, custom timing request..."></textarea>
+        </div>
+
+        <div class="field full">
+          <button type="button">Submit Request</button>
+        </div>
+      </form>
+
+      <div class="note">
+        Booking logic currently being integrated: 90-minute reservation + 90-minute prep buffer, no double-bookings, deposit/refund policy, and staff approval flow for custom bookings.
+      </div>
+    </section>
+  </main>
+</body>
+</html>

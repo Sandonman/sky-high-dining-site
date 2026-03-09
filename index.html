@@ -58,19 +58,25 @@
     .menu-media {
       margin: 0;
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 6px;
       align-content: start;
     }
     .menu-media figure { margin: 0; }
     .menu-media img {
       width: 100%;
-      height: 125px;
+      height: 110px;
       object-fit: cover;
       object-position: center center;
       border-radius: 10px;
       border: 1px solid #374151;
       display: block;
+    }
+    .menu-media figure.premium-image {
+      grid-row: span 2;
+    }
+    .menu-media figure.premium-image img {
+      height: 226px;
     }
     .img-sub-sandwich { object-position: center 62%; }
     .img-pulled-pork { object-position: center 55%; }
@@ -78,7 +84,9 @@
     @media (max-width: 900px) {
       .menu-layout { grid-template-columns: 1fr; }
       .menu-media { grid-template-columns: 1fr; }
-      .menu-media img { height: 190px; }
+      .menu-media figure.premium-image { grid-row: auto; }
+      .menu-media img,
+      .menu-media figure.premium-image img { height: 190px; }
     }
     h2 { margin: 0 0 8px; font-size: 1.55rem; }
     h3 { margin: 12px 0 8px; font-size: 1.2rem; color: #fde68a; }
@@ -143,7 +151,7 @@
           <figure>
             <img src="images/breakfast-burrito.jpg" alt="Breakfast burrito with eggs and potatoes" title="Breakfast burrito with eggs and potatoes" />
           </figure>
-          <figure>
+          <figure class="premium-image">
             <img src="images/steak-and-eggs.jpg" alt="Steak and eggs with sunny side up eggs" title="Steak and eggs with sunny side up eggs" />
           </figure>
         </div>
@@ -192,7 +200,7 @@
           <figure>
             <img class="img-sub-sandwich" src="images/sub-sandwich.jpg" alt="Sub sandwich with ham turkey lettuce tomato and onion" title="Sub sandwich with ham turkey lettuce tomato and onion" />
           </figure>
-          <figure>
+          <figure class="premium-image">
             <img class="img-filet" src="images/filet-plate.jpg" alt="Filet mignon with baked potato and dinner roll" title="Filet mignon with baked potato and dinner roll" />
           </figure>
         </div>

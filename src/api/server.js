@@ -181,6 +181,29 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
   }
 });
 
+app.delete('/api/admin/reservations/:id', async (req, res) => {
+  if (!requireAdmin(req, res)) return;
+
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `delete from reservations
+       where id = $1 and status = 'cancelled'
+       returning id`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(400).json({ error: 'Only cancelled reservations can be cleared' });
+    }
+
+    return res.json({ ok: true, deletedId: result.rows[0].id });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to clear reservation', detail: e.message });
+  }
+});
+
 app.post('/api/payment/deposit/create', async (req, res) => {
   const { reservationId } = req.body;
   if (!reservationId) return res.status(400).json({ error: 'reservationId is required' });

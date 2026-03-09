@@ -26,6 +26,7 @@
     .actions button{padding:6px 8px;border-radius:8px;font-size:.78rem}
     .approve{background:#16a34a;color:#fff}
     .reject{background:#dc2626;color:#fff}
+    .clear{background:#475569;color:#fff}
     .note{width:220px;background:#0b1220;color:#fff;border:1px solid #334155;border-radius:8px;padding:6px 8px;font-size:.82rem}
     @media (max-width:860px){table{display:block;overflow:auto;white-space:nowrap}}
   </style>
@@ -99,6 +100,25 @@
       }
     }
 
+    async function clearReservation(id){
+      const key = getKey();
+      if (!key) return;
+      const ok = confirm('Clear this cancelled reservation permanently?');
+      if (!ok) return;
+      statusEl.textContent = `Clearing ${id}...`;
+      try {
+        const res = await fetch(`${API}/api/admin/reservations/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-admin-key': key }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Clear failed');
+        await load();
+      } catch (err) {
+        statusEl.textContent = err.message || 'Failed to clear reservation';
+      }
+    }
+
     async function load(){
       const key = getKey();
       if (!key) {
@@ -129,6 +149,7 @@
               <div class="actions">
                 <button class="approve" data-id="${r.id}" data-status="confirmed">Approve</button>
                 <button class="reject" data-id="${r.id}" data-status="cancelled">Reject</button>
+                ${r.status === 'cancelled' ? `<button class="clear" data-clear-id="${r.id}">Clear</button>` : ''}
               </div>
             </td>`;
           tbody.appendChild(trMain);
@@ -148,6 +169,9 @@
 
         tbody.querySelectorAll('button[data-id]').forEach(btn => {
           btn.addEventListener('click', () => setStatus(btn.dataset.id, btn.dataset.status));
+        });
+        tbody.querySelectorAll('button[data-clear-id]').forEach(btn => {
+          btn.addEventListener('click', () => clearReservation(btn.dataset.clearId));
         });
       }catch(err){
         statusEl.textContent = err.message || 'Error loading reservations';

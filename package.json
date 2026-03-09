@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev:api": "node src/api/server.js",
-    "db:init": "psql $DATABASE_URL -f db/schema.sql"
+    "db:init": "node db/init.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

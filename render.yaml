@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: sky-high-dining-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install
+    startCommand: npm run dev:api
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: PORT
+        value: 8787
+      - key: DATABASE_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

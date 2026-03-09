@@ -166,9 +166,9 @@
   </main>
 
   <script>
-    const API_BASE = window.location.hostname.includes('github.io')
-      ? 'http://localhost:8787'
-      : '';
+    const API_BASE = window.BOOKING_API_BASE || (window.location.hostname.includes('github.io')
+      ? ''
+      : '');
 
     const form = document.getElementById('booking-form');
     const statusEl = document.getElementById('status');
@@ -200,6 +200,12 @@
       }
 
       const startAt = `${date}T${time}:00-07:00`;
+
+      if (!API_BASE) {
+        setStatus('Booking API is not deployed yet. Once deployed, set window.BOOKING_API_BASE to the API URL.', true);
+        submitBtn.disabled = false;
+        return;
+      }
 
       try {
         const holdRes = await fetch(`${API_BASE}/api/booking/hold`, {

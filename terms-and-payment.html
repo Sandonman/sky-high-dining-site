@@ -21,6 +21,10 @@
     .hidden { display:none; }
     h2 { margin-top:0; }
     .menu-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+    .choice-group { margin-top: 10px; }
+    .choice-row { display: grid; gap: 8px; }
+    .choice-item { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #0b1220; }
+    .choice-item input { margin-right: 8px; }
     .summary { border:1px dashed #475569; border-radius:10px; padding:12px; margin-top:10px; }
     @media (max-width:720px){ .menu-grid{ grid-template-columns:1fr; } }
   </style>
@@ -37,19 +41,18 @@
     <section id="menuSection" class="card hidden">
       <h2>Choose Your Menu</h2>
       <p>This appears only after reservation approval. You’ll see your estimated total before checkout.</p>
-      <div class="menu-grid">
-        <label>Menu Tier
-          <select id="menuTier">
-            <option value="standard">Standard ($49.99/person, includes 2 sides)</option>
-            <option value="premium">Premium ($64.99/person, includes 3 sides)</option>
-          </select>
-        </label>
-        <label>Entrée
-          <select id="entree"></select>
-        </label>
+      <div class="choice-group">
+        <strong>1) Select Menu Tier</strong>
+        <div id="menuTierWrap" class="choice-row" style="margin-top:6px;"></div>
       </div>
-      <div style="margin-top:10px;">
-        <strong>Sides</strong>
+
+      <div class="choice-group">
+        <strong>2) Select Entrée</strong>
+        <div id="entreeWrap" class="choice-row" style="margin-top:6px;"></div>
+      </div>
+
+      <div class="choice-group">
+        <strong>3) Select Sides</strong>
         <div id="sidesWrap" class="menu-grid" style="margin-top:6px;"></div>
       </div>
       <div class="summary" id="costSummary">Estimated total: —</div>
@@ -102,8 +105,8 @@
     const notApprovedEl = document.getElementById('not-approved');
     const menuSection = document.getElementById('menuSection');
     const termsSection = document.getElementById('termsSection');
-    const menuTierEl = document.getElementById('menuTier');
-    const entreeEl = document.getElementById('entree');
+    const menuTierWrap = document.getElementById('menuTierWrap');
+    const entreeWrap = document.getElementById('entreeWrap');
     const sidesWrap = document.getElementById('sidesWrap');
     const costSummary = document.getElementById('costSummary');
     const acceptEl = document.getElementById('accept');
@@ -122,13 +125,41 @@
       return 'dinner';
     }
 
-    function renderMenuOptions() {
+    function selectedTier() {
+      return document.querySelector('input[name="menuTier"]:checked')?.value || 'standard';
+    }
+
+    function selectedEntree() {
+      return document.querySelector('input[name="entree"]:checked')?.value || '';
+    }
+
+    function renderTierOptions() {
+      menuTierWrap.innerHTML = `
+        <label class="choice-item"><input type="radio" name="menuTier" value="standard" checked /> Standard ($49.99/person, includes 2 sides)</label>
+        <label class="choice-item"><input type="radio" name="menuTier" value="premium" /> Premium ($64.99/person, includes 3 sides)</label>
+      `;
+    }
+
+    function renderEntreeOptions() {
       const daypart = getDaypart(reservation.experience_type);
       const cfg = MENU[daypart];
-      entreeEl.innerHTML = cfg.entrees.map(e => `<option value="${e}">${e}</option>`).join('');
-      sidesWrap.innerHTML = cfg.sides.map((s, i) => `
-        <label><input type="checkbox" class="sideCheck" value="${s}" ${i < 2 ? 'checked' : ''}/> ${s}</label>
+      entreeWrap.innerHTML = cfg.entrees.map((e, i) => `
+        <label class="choice-item"><input type="radio" name="entree" value="${e}" ${i === 0 ? 'checked' : ''}/> ${e}</label>
       `).join('');
+    }
+
+    function renderSideOptions() {
+      const daypart = getDaypart(reservation.experience_type);
+      const cfg = MENU[daypart];
+      sidesWrap.innerHTML = cfg.sides.map((s, i) => `
+        <label class="choice-item"><input type="checkbox" class="sideCheck" value="${s}" ${i < 2 ? 'checked' : ''}/> ${s}</label>
+      `).join('');
+    }
+
+    function renderMenuOptions() {
+      renderTierOptions();
+      renderEntreeOptions();
+      renderSideOptions();
       updateSummary();
     }
 
@@ -139,7 +170,7 @@
     function updateSummary() {
       if (!reservation) return;
       const party = Number(reservation.party_size || 0);
-      const tier = menuTierEl.value;
+      const tier = selectedTier();
       const basePerPerson = PRICING[tier];
       const included = tier === 'premium' ? 3 : 2;
       const extras = Math.max(0, selectedSides().length - included);
@@ -182,8 +213,11 @@
       renderMenuOptions();
     }
 
-    menuTierEl.addEventListener('change', updateSummary);
-    document.addEventListener('change', (e) => { if (e.target.classList.contains('sideCheck')) updateSummary(); });
+    document.addEventListener('change', (e) => {
+      if (e.target.name === 'menuTier' || e.target.name === 'entree' || e.target.classList.contains('sideCheck')) {
+        updateSummary();
+      }
+    });
 
     payBtn.addEventListener('click', async () => {
       if (!acceptEl.checked) return setStatus('Please accept terms before continuing.', true);
@@ -193,8 +227,8 @@
       try {
         const menuPayload = {
           token,
-          menuTier: menuTierEl.value,
-          entreeChoice: entreeEl.value,
+          menuTier: selectedTier(),
+          entreeChoice: selectedEntree(),
           sides: selectedSides()
         };
 

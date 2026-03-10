@@ -161,7 +161,6 @@ app.post('/api/booking/submit', async (req, res) => {
 
   const whenText = formatReservationDate(startAt);
   const statusText = result.rows[0].status === 'pending_staff_approval' ? 'pending staff approval' : 'pending';
-  const termsLink = buildTermsLink(result.rows[0].id, accessToken);
 
   await sendEmail({
     to: customer.email,
@@ -171,8 +170,7 @@ app.post('/api/booking/submit', async (req, res) => {
       <p>We received your reservation request for <strong>${whenText}</strong>.</p>
       <p>Current status: <strong>${statusText}</strong>.</p>
       <p>Reservation ID: <code>${result.rows[0].id}</code></p>
-      <p>Before payment, please review and accept our terms here:</p>
-      <p><a href="${termsLink}">Review Terms & Proceed to Payment</a></p>
+      <p>Payment and terms acceptance will be sent in a separate email once your reservation is confirmed.</p>
       <p>We’ll email you again once this is approved or declined.</p>
     `
   });
@@ -205,6 +203,59 @@ app.get('/api/public/reservations/:id', async (req, res) => {
   }
 });
 
+app.post('/api/public/reservations/:id/menu', async (req, res) => {
+  const { id } = req.params;
+  const { token, menuTier, entreeChoice, sides } = req.body;
+
+  if (!token || !menuTier || !entreeChoice) {
+    return res.status(400).json({ error: 'token, menuTier, and entreeChoice are required' });
+  }
+
+  if (!['standard', 'premium'].includes(menuTier)) {
+    return res.status(400).json({ error: 'Invalid menu tier' });
+  }
+
+  if (!Array.isArray(sides)) {
+    return res.status(400).json({ error: 'sides must be an array' });
+  }
+
+  try {
+    const reservationResult = await pool.query(
+      `select id, status, party_size
+       from reservations
+       where id = $1 and reservation_access_token = $2`,
+      [id, token]
+    );
+
+    if (reservationResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Reservation not found' });
+    }
+
+    const reservation = reservationResult.rows[0];
+    if (reservation.status !== 'confirmed') {
+      return res.status(400).json({ error: 'Menu selection is only available after approval' });
+    }
+
+    const includedSides = menuTier === 'premium' ? 3 : 2;
+    const extraSidesCount = Math.max(0, sides.length - includedSides);
+
+    await pool.query(
+      `update reservations
+       set menu_tier = $1,
+           entree_choice = $2,
+           sides = $3::jsonb,
+           extra_sides_count = $4,
+           updated_at = now()
+       where id = $5`,
+      [menuTier, entreeChoice, JSON.stringify(sides), extraSidesCount, id]
+    );
+
+    return res.json({ ok: true, extraSidesCount });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to save menu selection', detail: e.message });
+  }
+});
+
 app.post('/api/payment/deposit/checkout-link', async (req, res) => {
   const { reservationId, token, termsAccepted } = req.body;
 
@@ -234,6 +285,10 @@ app.post('/api/payment/deposit/checkout-link', async (req, res) => {
     }
 
     const reservation = reservationResult.rows[0];
+
+    if (reservation.status !== 'confirmed') {
+      return res.status(400).json({ error: 'Payment is only available after approval' });
+    }
 
     await pool.query(
       `update reservations

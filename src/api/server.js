@@ -325,7 +325,8 @@ app.get('/api/public/reservations/:id', async (req, res) => {
   try {
     const result = await pool.query(
       `select id, customer_name, customer_email, party_size, experience_type,
-              reservation_start_at, status, terms_accepted_at, location_key, location_name
+              reservation_start_at, status, terms_accepted_at, location_key, location_name,
+              menu_tier, entree_choice, sides, extra_sides_count
        from reservations
        where id = $1 and reservation_access_token = $2`,
       [id, token]
@@ -449,7 +450,7 @@ app.post(['/api/payment/checkout-link', '/api/payment/deposit/checkout-link'], a
       extraSidesCount: reservation.extra_sides_count
     });
 
-    const successUrl = `${websiteBase}/reservation-made.html?reservationId=${encodeURIComponent(reservation.id)}&status=paid`;
+    const successUrl = `${websiteBase}/reservation-made.html?reservationId=${encodeURIComponent(reservation.id)}&status=paid&token=${encodeURIComponent(token)}`;
     const cancelUrl = `${websiteBase}/terms-and-payment.html?reservationId=${encodeURIComponent(reservation.id)}&token=${encodeURIComponent(token)}`;
 
     const session = await stripe.checkout.sessions.create({

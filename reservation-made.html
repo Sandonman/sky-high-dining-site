@@ -150,6 +150,22 @@
           <div class="label">Party Size</div>
           <div class="value" id="party">—</div>
         </div>
+        <div class="row">
+          <div class="label">Location</div>
+          <div class="value" id="location">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Menu Tier</div>
+          <div class="value" id="menuTier">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Entrée Choice</div>
+          <div class="value" id="entreeChoice">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Sides</div>
+          <div class="value" id="sides">—</div>
+        </div>
       </div>
 
       <div class="actions">
@@ -162,18 +178,76 @@
   </main>
 
   <script>
+    window.BOOKING_API_BASE = 'https://sky-high-dining-site.onrender.com';
+    const API_BASE = window.BOOKING_API_BASE || (window.location.hostname.includes('github.io') ? '' : '');
     const params = new URLSearchParams(window.location.search);
 
     const setText = (id, value, fallback = '—') => {
-      document.getElementById(id).textContent = value && value.trim() ? value : fallback;
+      const el = document.getElementById(id);
+      if (!el) return;
+      const text = typeof value === 'string' ? value.trim() : value;
+      el.textContent = text ? text : fallback;
     };
 
-    setText('reservationId', params.get('reservationId'));
-    setText('status', params.get('status') || 'pending', 'pending');
-    setText('date', params.get('date'));
-    setText('time', params.get('time'));
-    setText('experience', params.get('experience'));
-    setText('party', params.get('party'));
+    function formatDateTime(iso) {
+      if (!iso) return { date: '', time: '' };
+      const d = new Date(iso);
+      return {
+        date: d.toLocaleDateString('en-US', { timeZone: 'America/Phoenix', year: 'numeric', month: 'long', day: 'numeric' }),
+        time: d.toLocaleTimeString('en-US', { timeZone: 'America/Phoenix', hour: 'numeric', minute: '2-digit' })
+      };
+    }
+
+    function humanizeStatus(status) {
+      if (!status) return '';
+      return status.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function humanizeMenuTier(tier) {
+      if (!tier) return '';
+      return tier.charAt(0).toUpperCase() + tier.slice(1);
+    }
+
+    function setFromParams() {
+      setText('reservationId', params.get('reservationId'));
+      setText('status', humanizeStatus(params.get('status') || 'pending'), 'Pending');
+      setText('date', params.get('date'));
+      setText('time', params.get('time'));
+      setText('experience', params.get('experience'));
+      setText('party', params.get('party'));
+      setText('location', params.get('location'));
+    }
+
+    async function enrichFromApi() {
+      const reservationId = params.get('reservationId');
+      const token = params.get('token');
+      if (!reservationId || !token || !API_BASE) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/public/reservations/${encodeURIComponent(reservationId)}?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        if (!res.ok || !data?.reservation) return;
+
+        const r = data.reservation;
+        const dt = formatDateTime(r.reservation_start_at);
+
+        setText('reservationId', r.id);
+        setText('status', humanizeStatus(r.status), 'Pending');
+        setText('date', dt.date);
+        setText('time', dt.time);
+        setText('experience', r.experience_type);
+        setText('party', r.party_size ? String(r.party_size) : '');
+        setText('location', r.location_name || r.location_key || 'Serenade Assisted Living');
+        setText('menuTier', humanizeMenuTier(r.menu_tier));
+        setText('entreeChoice', r.entree_choice);
+        setText('sides', Array.isArray(r.sides) && r.sides.length ? r.sides.join(', ') : '');
+      } catch (_e) {
+        // Keep fallback values from URL params if API lookup fails.
+      }
+    }
+
+    setFromParams();
+    enrichFromApi();
   </script>
 </body>
 </html>

@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sky High Dining | Reservation Confirmed</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --muted: #94a3b8;
+      --text: #f8fafc;
+      --line: #334155;
+      --gold: #f59e0b;
+      --ok: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 24px 18px 64px; }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .brand { font-weight: 700; font-size: 1.2rem; letter-spacing: .3px; }
+    .nav a {
+      color: #e2e8f0;
+      text-decoration: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: .95rem;
+      margin-left: 6px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(17,24,39,.78);
+      padding: 28px 24px;
+    }
+    h1 { margin: 0 0 8px; font-size: 2rem; }
+    .lead { margin: 0 0 16px; color: #dbe3ef; }
+    .badge {
+      display: inline-block;
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.5);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .details {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      border-top: 1px solid var(--line);
+    }
+    .row:first-child { border-top: none; }
+    .label {
+      background: rgba(15,23,42,.9);
+      padding: 10px 12px;
+      color: #cbd5e1;
+      font-weight: 600;
+    }
+    .value {
+      padding: 10px 12px;
+      color: #f8fafc;
+      word-break: break-word;
+    }
+    .actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      color: #e2e8f0;
+      background: #0b1220;
+    }
+    .btn.primary {
+      background: var(--gold);
+      color: #111827;
+      border-color: #fbbf24;
+    }
+    .note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: .92rem;
+    }
+    @media (max-width: 700px) {
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="nav">
+      <div class="brand">Sky High Dining</div>
+      <div>
+        <a href="index.html">Home</a>
+        <a href="menu.html">Menu</a>
+        <a href="booking.html">Booking</a>
+        <a href="admin.html">Admin</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="badge">Reservation Request Received</div>
+      <h1>Your booking request went through ✅</h1>
+      <p class="lead">We received your request and logged it in our system. Keep your reservation ID for reference.</p>
+
+      <div class="details">
+        <div class="row">
+          <div class="label">Reservation ID</div>
+          <div class="value" id="reservationId">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Status</div>
+          <div class="value" id="status">Pending</div>
+        </div>
+        <div class="row">
+          <div class="label">Date</div>
+          <div class="value" id="date">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Start Time</div>
+          <div class="value" id="time">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Experience</div>
+          <div class="value" id="experience">—</div>
+        </div>
+        <div class="row">
+          <div class="label">Party Size</div>
+          <div class="value" id="party">—</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <a class="btn primary" href="booking.html">Make Another Request</a>
+        <a class="btn" href="menu.html">View Menu</a>
+      </div>
+
+      <p class="note">Custom bookings may require staff approval before final confirmation.</p>
+    </section>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    const setText = (id, value, fallback = '—') => {
+      document.getElementById(id).textContent = value && value.trim() ? value : fallback;
+    };
+
+    setText('reservationId', params.get('reservationId'));
+    setText('status', params.get('status') || 'pending', 'pending');
+    setText('date', params.get('date'));
+    setText('time', params.get('time'));
+    setText('experience', params.get('experience'));
+    setText('party', params.get('party'));
+  </script>
+</body>
+</html>

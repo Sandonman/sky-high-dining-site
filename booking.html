@@ -234,8 +234,15 @@
         const submitData = await submitRes.json();
         if (!submitRes.ok) throw new Error(submitData.error || 'Failed to submit booking');
 
-        setStatus(`Request saved. Reservation ID: ${submitData.reservationId} (status: ${submitData.status})`);
-        form.reset();
+        const confirmationParams = new URLSearchParams({
+          reservationId: submitData.reservationId || '',
+          status: submitData.status || 'pending',
+          date,
+          time,
+          experience,
+          party: String(party)
+        });
+        window.location.href = `reservation-made.html?${confirmationParams.toString()}`;
       } catch (err) {
         setStatus(err.message || 'Something went wrong. Try again.', true);
       } finally {

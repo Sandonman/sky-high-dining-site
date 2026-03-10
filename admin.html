@@ -53,20 +53,29 @@
         <button id="unlock">Unlock</button>
       </div>
       <div id="status" class="status">Enter admin key to load reservations.</div>
-      <table id="table">
-        <thead>
-          <tr>
-            <th>Created</th>
-            <th>Start</th>
-            <th>Name</th>
-            <th>Party</th>
-            <th>Experience</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div style="display:flex;gap:8px;margin:10px 0;">
+        <button id="tabList" type="button">List</button>
+        <button id="tabCalendar" type="button">Calendar</button>
+      </div>
+      <div id="listView">
+        <table id="table">
+          <thead>
+            <tr>
+              <th>Created</th>
+              <th>Start</th>
+              <th>Name</th>
+              <th>Party</th>
+              <th>Experience</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="calendarView" style="display:none;">
+        <div id="calendarReservations" style="display:grid;gap:10px;"></div>
+      </div>
     </section>
   </main>
 
@@ -76,9 +85,36 @@
     const statusEl = document.getElementById('status');
     const tbody = document.querySelector('#table tbody');
     const adminKeyInput = document.getElementById('adminKey');
+    const calendarReservations = document.getElementById('calendarReservations');
+    const listView = document.getElementById('listView');
+    const calendarView = document.getElementById('calendarView');
 
     function fmt(v){ try{return new Date(v).toLocaleString()}catch{return v||''} }
     function getKey(){ return sessionStorage.getItem('admin_api_key') || ''; }
+
+    function renderCalendarView(rows){
+      const groups = {};
+      rows.forEach(r => {
+        const d = new Date(r.reservation_start_at);
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        groups[key] = groups[key] || [];
+        groups[key].push(r);
+      });
+      const dates = Object.keys(groups).sort();
+      if (!dates.length) {
+        calendarReservations.innerHTML = '<div class="status">No reservations yet.</div>';
+        return;
+      }
+      calendarReservations.innerHTML = dates.map(date => {
+        const items = groups[date]
+          .sort((a,b)=>new Date(a.reservation_start_at)-new Date(b.reservation_start_at))
+          .map(r => `<div style="border:1px solid #334155;border-radius:8px;padding:8px;background:#0b1220;">
+            <strong>${fmt(r.reservation_start_at)}</strong> · ${r.customer_name} · party ${r.party_size}
+            <div style="color:#94a3b8;font-size:.9rem;">${r.experience_type} · ${r.status} · ${r.payment_status || 'unpaid'}</div>
+          </div>`).join('');
+        return `<div class="card" style="padding:12px;"><h3 style="margin:0 0 8px;">${date}</h3><div style="display:grid;gap:8px;">${items}</div></div>`;
+      }).join('');
+    }
 
     async function setStatus(id, status){
       const key = getKey();
@@ -136,6 +172,7 @@
         if(!res.ok) throw new Error(data.error || 'Failed to load');
         const rows = data.reservations || [];
         statusEl.textContent = `${rows.length} reservation(s)`;
+        renderCalendarView(rows);
         rows.forEach(r => {
           const trMain = document.createElement('tr');
           trMain.innerHTML = `
@@ -187,6 +224,8 @@
     });
 
     document.getElementById('refresh').addEventListener('click', load);
+    document.getElementById('tabList').addEventListener('click', () => { listView.style.display='block'; calendarView.style.display='none'; });
+    document.getElementById('tabCalendar').addEventListener('click', () => { listView.style.display='none'; calendarView.style.display='block'; });
     load();
   </script>
 </body>

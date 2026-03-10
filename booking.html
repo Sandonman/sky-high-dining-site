@@ -126,13 +126,16 @@
           </select>
         </div>
 
-        <div class="field">
-          <label for="date">Preferred Date</label>
-          <input id="date" name="date" type="date" />
-        </div>
-        <div class="field">
-          <label for="time">Preferred Start Time</label>
-          <input id="time" name="time" type="time" />
+        <div class="field full">
+          <label>Select Reservation Date</label>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+            <button type="button" id="prevMonth">◀</button>
+            <strong id="monthLabel"></strong>
+            <button type="button" id="nextMonth">▶</button>
+          </div>
+          <div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;"></div>
+          <div id="slotWrap" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;"></div>
+          <input type="hidden" id="startAt" name="startAt" />
         </div>
         <div class="field full">
           <label for="experience">Experience Type</label>
@@ -161,7 +164,7 @@
       </form>
 
       <div class="note">
-        Booking logic currently being integrated: 90-minute reservation + 90-minute prep buffer, no double-bookings, deposit/refund policy, and staff approval flow for custom bookings.
+        Booking logic: 90-minute reservation + 90-minute prep buffer, no double-bookings, full-payment checkout after approval, and $100 late-cancellation fee inside 48 hours.
       </div>
     </section>
   </main>
@@ -175,11 +178,102 @@
     const form = document.getElementById('booking-form');
     const statusEl = document.getElementById('status');
     const submitBtn = document.getElementById('submit-btn');
+    const monthLabel = document.getElementById('monthLabel');
+    const calendarGrid = document.getElementById('calendarGrid');
+    const slotWrap = document.getElementById('slotWrap');
+    const startAtInput = document.getElementById('startAt');
 
     const setStatus = (text, isError = false) => {
       statusEl.textContent = text;
       statusEl.style.color = isError ? '#fca5a5' : '#cbd5e1';
     };
+
+    const toDateKey = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const phoenixFmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Phoenix', hour: 'numeric', minute: '2-digit' });
+    let monthCursor = new Date();
+    monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
+    let selectedDate = null;
+    let availableSlots = [];
+
+    async function loadAvailability(dateKey) {
+      slotWrap.innerHTML = 'Loading available times...';
+      startAtInput.value = '';
+      try {
+        const res = await fetch(`${API_BASE}/api/availability/check`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: dateKey })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load availability');
+        availableSlots = data.availableStartTimes || [];
+        renderSlots();
+      } catch (e) {
+        slotWrap.innerHTML = `<span style="color:#fca5a5;">${e.message}</span>`;
+      }
+    }
+
+    function renderSlots() {
+      if (!availableSlots.length) {
+        slotWrap.innerHTML = '<span style="color:#94a3b8;">No available start times for this date.</span>';
+        return;
+      }
+      slotWrap.innerHTML = '';
+      availableSlots.forEach(iso => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = phoenixFmt.format(new Date(iso));
+        b.style.background = '#0b1220';
+        b.style.color = '#f8fafc';
+        b.style.border = '1px solid #334155';
+        b.onclick = () => {
+          startAtInput.value = iso;
+          [...slotWrap.querySelectorAll('button')].forEach(x => x.style.outline = 'none');
+          b.style.outline = '2px solid #22c55e';
+        };
+        slotWrap.appendChild(b);
+      });
+    }
+
+    function renderCalendar() {
+      calendarGrid.innerHTML = '';
+      monthLabel.textContent = monthCursor.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+      ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+        const h = document.createElement('div'); h.textContent = d; h.style.color = '#94a3b8'; h.style.fontSize = '.86rem';
+        calendarGrid.appendChild(h);
+      });
+      const first = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
+      const offset = first.getDay();
+      for (let i=0;i<offset;i++) calendarGrid.appendChild(document.createElement('div'));
+      const days = new Date(monthCursor.getFullYear(), monthCursor.getMonth()+1, 0).getDate();
+      const today = new Date();
+      for (let day=1; day<=days; day++) {
+        const d = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), day);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.textContent = String(day);
+        btn.style.background = '#0b1220'; btn.style.color = '#f8fafc'; btn.style.border = '1px solid #334155';
+        if (d < new Date(today.getFullYear(), today.getMonth(), today.getDate())) {
+          btn.disabled = true; btn.style.opacity = '.35';
+        }
+        btn.onclick = () => {
+          selectedDate = toDateKey(d);
+          [...calendarGrid.querySelectorAll('button')].forEach(x => x.style.outline = 'none');
+          btn.style.outline = '2px solid #f59e0b';
+          loadAvailability(selectedDate);
+        };
+        calendarGrid.appendChild(btn);
+      }
+    }
+
+    document.getElementById('prevMonth').addEventListener('click', () => {
+      monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth()-1, 1);
+      renderCalendar();
+    });
+    document.getElementById('nextMonth').addEventListener('click', () => {
+      monthCursor = new Date(monthCursor.getFullYear(), monthCursor.getMonth()+1, 1);
+      renderCalendar();
+    });
+
+    renderCalendar();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -190,18 +284,19 @@
       const phone = document.getElementById('phone').value.trim();
       const email = document.getElementById('email').value.trim();
       const party = Number(document.getElementById('party').value);
-      const date = document.getElementById('date').value;
-      const time = document.getElementById('time').value;
+      const startAt = startAtInput.value;
       const experience = document.getElementById('experience').value;
       const notes = document.getElementById('notes').value.trim();
 
-      if (!name || !phone || !email || !party || !date || !time || !experience) {
-        setStatus('Please complete all required fields.', true);
+      if (!name || !phone || !email || !party || !startAt || !experience) {
+        setStatus('Please complete all required fields, including selecting an available start time.', true);
         submitBtn.disabled = false;
         return;
       }
 
-      const startAt = `${date}T${time}:00-07:00`;
+      const startDate = new Date(startAt);
+      const date = toDateKey(startDate);
+      const time = phoenixFmt.format(startDate);
 
       if (!API_BASE) {
         setStatus('Booking API is not deployed yet. Once deployed, set window.BOOKING_API_BASE to the API URL.', true);

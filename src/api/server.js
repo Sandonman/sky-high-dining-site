@@ -75,7 +75,52 @@ app.get('/api/health', (_req, res) => res.json({ ok: true }));
 app.post('/api/availability/check', async (req, res) => {
   const { date } = req.body;
   if (!date) return res.status(400).json({ error: 'date is required' });
-  return res.json({ availableStartTimes: [] });
+
+  try {
+    const dayStart = new Date(`${date}T00:00:00-07:00`);
+    const dayEnd = new Date(`${date}T23:59:59-07:00`);
+
+    const blocked = await pool.query(
+      `select block_start, block_end
+       from (
+         select reservation_start_at as block_start,
+                reservation_start_at + interval '180 minutes' as block_end
+         from reservations
+         where status in ('pending','pending_staff_approval','confirmed')
+         union all
+         select slot_start_at as block_start,
+                slot_end_at as block_end
+         from reservation_holds
+         where status='active' and expires_at > now()
+       ) w
+       where w.block_start < $2::timestamptz
+         and w.block_end > $1::timestamptz`,
+      [dayStart.toISOString(), new Date(dayEnd.getTime() + BLOCK_MINUTES * 60 * 1000).toISOString()]
+    );
+
+    const blocks = blocked.rows.map(r => ({
+      start: new Date(r.block_start).getTime(),
+      end: new Date(r.block_end).getTime()
+    }));
+
+    const availableStartTimes = [];
+    for (let hour = 6; hour <= 21; hour++) {
+      for (const minute of [0, 30]) {
+        const hh = String(hour).padStart(2, '0');
+        const mm = String(minute).padStart(2, '0');
+        const start = new Date(`${date}T${hh}:${mm}:00-07:00`);
+        const end = new Date(start.getTime() + BLOCK_MINUTES * 60 * 1000);
+        if (end > new Date(`${date}T23:59:59-07:00`)) continue;
+
+        const conflict = blocks.some(b => start.getTime() < b.end && end.getTime() > b.start);
+        if (!conflict) availableStartTimes.push(start.toISOString());
+      }
+    }
+
+    return res.json({ availableStartTimes });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to calculate availability', detail: e.message });
+  }
 });
 
 app.post('/api/booking/hold', async (req, res) => {

@@ -35,7 +35,7 @@
   <main class="wrap">
     <div class="nav">
       <div class="brand">Sky High Dining</div>
-      <div>
+      <div class="nav-links">
         <a href="index.html">Home</a>
         <a href="menu.html">Menu</a>
                 <a href="locations.html">Locations</a>
@@ -107,6 +107,12 @@
     function dateKeyFrom(value) {
       const d = new Date(value);
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
     }
 
     function hasQualifyingBooking(rowsForDay = []) {

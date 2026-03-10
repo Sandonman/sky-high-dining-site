@@ -21,10 +21,17 @@
       color:#1e293b; text-decoration:none; border:1px solid var(--line);
       border-radius:999px; padding:8px 14px; margin-left:6px; font-size:.95rem;
     }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
     .card {
       border:1px solid var(--line);
       border-radius:14px;
       background: #ffffff;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
       padding:24px;
     }
     h1 { margin:0 0 10px; font-size:1.8rem; }
@@ -40,7 +47,7 @@
   <main class="wrap">
     <div class="nav">
       <div class="brand">Sky High Dining</div>
-      <div>
+      <div class="nav-links">
         <a href="index.html">Home</a>
         <a href="menu.html">Menu</a>
                 <a href="locations.html">Locations</a>

@@ -38,11 +38,18 @@
       padding: 8px 14px;
       font-size: .95rem;
     }
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
     .hero {
       border: 1px solid var(--line);
       border-radius: 16px;
       padding: 30px 24px;
       background: #ffffff;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
       text-align: center;
     }
     .hero-logo {
@@ -74,6 +81,7 @@
       border-radius: 14px;
       padding: 18px;
       background: #ffffff;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
     }
     h2 { margin: 0 0 8px; font-size: 1.25rem; color: #b45309; }
     p { margin: 0; color: #334155; }
@@ -83,6 +91,7 @@
       border-radius: 14px;
       padding: 18px;
       background: #ffffff;
+      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
     }
     .gallery-controls {
       margin-top: 10px;
@@ -139,7 +148,7 @@
   <main class="wrap">
     <div class="nav">
       <div class="brand">Sky High Dining</div>
-      <div>
+      <div class="nav-links">
         <a href="index.html">Home</a>
         <a href="menu.html">Menu</a>
         <a href="locations.html">Locations</a>

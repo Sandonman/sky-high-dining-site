@@ -68,13 +68,28 @@ const DURATION_MINUTES = 90;
 const BUFFER_MINUTES = 90;
 const BLOCK_MINUTES = DURATION_MINUTES + BUFFER_MINUTES;
 
+const LOCATIONS = {
+  'serenade-assisted-living': {
+    key: 'serenade-assisted-living',
+    name: 'Serenade Assisted Living'
+  }
+};
+
+function normalizeLocationKey(locationKey) {
+  const key = (locationKey || '').trim().toLowerCase();
+  if (!key || !LOCATIONS[key]) return 'serenade-assisted-living';
+  return key;
+}
+
 const isCustom = (experienceType = '') => experienceType.toLowerCase().includes('custom');
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 app.post('/api/availability/check', async (req, res) => {
-  const { date } = req.body;
+  const { date, locationKey } = req.body;
   if (!date) return res.status(400).json({ error: 'date is required' });
+
+  const normalizedLocationKey = normalizeLocationKey(locationKey);
 
   try {
     const dayStart = new Date(`${date}T00:00:00-07:00`);
@@ -87,15 +102,17 @@ app.post('/api/availability/check', async (req, res) => {
                 reservation_start_at + interval '180 minutes' as block_end
          from reservations
          where status in ('pending','pending_staff_approval','confirmed')
+           and coalesce(location_key, 'serenade-assisted-living') = $3
          union all
          select slot_start_at as block_start,
                 slot_end_at as block_end
          from reservation_holds
          where status='active' and expires_at > now()
+           and coalesce(location_key, 'serenade-assisted-living') = $3
        ) w
        where w.block_start < $2::timestamptz
          and w.block_end > $1::timestamptz`,
-      [dayStart.toISOString(), new Date(dayEnd.getTime() + BLOCK_MINUTES * 60 * 1000).toISOString()]
+      [dayStart.toISOString(), new Date(dayEnd.getTime() + BLOCK_MINUTES * 60 * 1000).toISOString(), normalizedLocationKey]
     );
 
     const blocks = blocked.rows.map(r => ({
@@ -124,8 +141,10 @@ app.post('/api/availability/check', async (req, res) => {
 });
 
 app.post('/api/booking/hold', async (req, res) => {
-  const { startAt } = req.body;
+  const { startAt, locationKey } = req.body;
   if (!startAt) return res.status(400).json({ error: 'startAt is required' });
+
+  const normalizedLocationKey = normalizeLocationKey(locationKey);
 
   const client = await pool.connect();
   try {
@@ -142,14 +161,16 @@ app.post('/api/booking/hold', async (req, res) => {
                 reservation_start_at + interval '180 minutes' as block_end
          from reservations
          where status in ('pending','pending_staff_approval','confirmed')
+           and coalesce(location_key, 'serenade-assisted-living') = $3
          union all
          select slot_start_at as block_start, slot_end_at as block_end
          from reservation_holds
          where status='active' and expires_at > now()
+           and coalesce(location_key, 'serenade-assisted-living') = $3
        ) w
        where $1::timestamptz < w.block_end and $2::timestamptz > w.block_start
        limit 1`,
-      [start.toISOString(), end.toISOString()]
+      [start.toISOString(), end.toISOString(), normalizedLocationKey]
     );
 
     if (conflict.rowCount > 0) {
@@ -158,10 +179,10 @@ app.post('/api/booking/hold', async (req, res) => {
     }
 
     const hold = await client.query(
-      `insert into reservation_holds (slot_start_at, slot_end_at, expires_at)
-       values ($1,$2,$3)
+      `insert into reservation_holds (slot_start_at, slot_end_at, expires_at, location_key)
+       values ($1,$2,$3,$4)
        returning id, expires_at`,
-      [start.toISOString(), end.toISOString(), expiresAt.toISOString()]
+      [start.toISOString(), end.toISOString(), expiresAt.toISOString(), normalizedLocationKey]
     );
 
     await client.query('commit');
@@ -175,10 +196,13 @@ app.post('/api/booking/hold', async (req, res) => {
 });
 
 app.post('/api/booking/submit', async (req, res) => {
-  const { holdId, customer, menu = {}, experienceType, partySize, startAt, notes } = req.body;
+  const { holdId, customer, menu = {}, experienceType, partySize, startAt, notes, locationKey } = req.body;
   if (!holdId || !customer?.name || !customer?.email || !customer?.phone || !startAt || !experienceType || !partySize) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
+
+  const normalizedLocationKey = normalizeLocationKey(locationKey);
+  const locationName = LOCATIONS[normalizedLocationKey]?.name || 'Serenade Assisted Living';
 
   const status = isCustom(experienceType) ? 'pending_staff_approval' : 'pending';
   const accessToken = crypto.randomBytes(24).toString('hex');
@@ -187,8 +211,8 @@ app.post('/api/booking/submit', async (req, res) => {
     `insert into reservations (
       customer_name, customer_email, customer_phone, party_size, experience_type,
       reservation_start_at, status, menu_tier, entree_choice, sides, extra_sides_count, notes,
-      reservation_access_token
-    ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13)
+      reservation_access_token, location_key, location_name
+    ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13,$14,$15)
     returning id, status`,
     [
       customer.name,
@@ -203,7 +227,9 @@ app.post('/api/booking/submit', async (req, res) => {
       JSON.stringify(menu.sides || []),
       menu.extraSidesCount || 0,
       notes || null,
-      accessToken
+      accessToken,
+      normalizedLocationKey,
+      locationName
     ]
   );
 
@@ -224,6 +250,7 @@ app.post('/api/booking/submit', async (req, res) => {
       <p>Hi ${customer.name},</p>
       <p>We received your reservation request for <strong>${whenText}</strong>.</p>
       <p>Current status: <strong>${statusText}</strong>.</p>
+      <p>Location: <strong>${locationName}</strong></p>
       <p>Reservation ID: <code>${result.rows[0].id}</code></p>
       <p>Payment and terms acceptance will be sent in a separate email once your reservation is confirmed.</p>
       <p>We’ll email you again once this is approved or declined.</p>
@@ -242,7 +269,7 @@ app.get('/api/public/reservations/:id', async (req, res) => {
   try {
     const result = await pool.query(
       `select id, customer_name, customer_email, party_size, experience_type,
-              reservation_start_at, status, terms_accepted_at
+              reservation_start_at, status, terms_accepted_at, location_key, location_name
        from reservations
        where id = $1 and reservation_access_token = $2`,
       [id, token]
@@ -493,7 +520,8 @@ app.get('/api/admin/reservations', async (req, res) => {
       `select id, customer_name, customer_email, customer_phone, party_size, experience_type,
               reservation_start_at, status, created_at, notes, admin_notes, status_updated_at,
               terms_accepted_at, payment_status, payment_total_cents, paid_at,
-              refunded_cents, refunded_at, stripe_checkout_session_id, stripe_payment_intent_id
+              refunded_cents, refunded_at, stripe_checkout_session_id, stripe_payment_intent_id,
+              location_key, location_name
        from reservations
        order by created_at desc
        limit 200`
@@ -522,7 +550,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
            admin_notes = $2,
            status_updated_at = now()
        where id = $3
-       returning id, status, admin_notes, status_updated_at, customer_name, customer_email, reservation_start_at, reservation_access_token`,
+       returning id, status, admin_notes, status_updated_at, customer_name, customer_email, reservation_start_at, reservation_access_token, location_name`,
       [status, adminNotes || null, id]
     );
 
@@ -541,6 +569,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
         html: `
           <p>Hi ${reservation.customer_name},</p>
           <p>Great news — your reservation for <strong>${whenText}</strong> has been <strong>approved</strong>.</p>
+          <p>Location: <strong>${reservation.location_name || 'Serenade Assisted Living'}</strong></p>
           <p>Reservation ID: <code>${reservation.id}</code></p>
           <p>Please review/accept terms, choose your menu, and complete payment here:</p>
           <p><a href="${termsLink}">Review Terms & Proceed to Payment</a></p>

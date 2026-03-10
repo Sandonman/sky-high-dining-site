@@ -38,7 +38,8 @@
       <div>
         <a href="index.html">Home</a>
         <a href="menu.html">Menu</a>
-        <a href="booking.html">Booking</a>
+                <a href="locations.html">Locations</a>
+<a href="booking.html">Booking</a>
         <a href="admin.html">Admin</a>
       </div>
     </div>
@@ -66,6 +67,7 @@
               <th>Name</th>
               <th>Party</th>
               <th>Experience</th>
+              <th>Location</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -121,7 +123,7 @@
       }
       calendarReservations.innerHTML = `<div class="card" style="padding:12px;"><h3 style="margin:0 0 8px;">${dayKey}</h3><div style="display:grid;gap:8px;">${rows.map(r => `<div style="border:1px solid #334155;border-radius:8px;padding:8px;background:#0b1220;">
         <strong>${fmt(r.reservation_start_at)}</strong> · ${r.customer_name} · party ${r.party_size}
-        <div style="color:#94a3b8;font-size:.9rem;">${r.experience_type} · ${r.status} · ${r.payment_status || 'unpaid'}</div>
+        <div style="color:#94a3b8;font-size:.9rem;">${r.experience_type} · ${r.location_name || r.location_key || 'Serenade Assisted Living'} · ${r.status} · ${r.payment_status || 'unpaid'}</div>
       </div>`).join('')}</div></div>`;
     }
 
@@ -236,6 +238,7 @@
             <td>${r.customer_name || ''}</td>
             <td>${r.party_size || ''}</td>
             <td>${r.experience_type || ''}</td>
+            <td>${r.location_name || r.location_key || 'Serenade Assisted Living'}</td>
             <td><span class="pill">${r.status || ''}</span></td>
             <td>
               <div class="actions">
@@ -248,7 +251,7 @@
 
           const trDetail = document.createElement('tr');
           trDetail.innerHTML = `
-            <td colspan="7" style="background:#0b1220;color:#cbd5e1;font-size:.85rem;line-height:1.5">
+            <td colspan="8" style="background:#0b1220;color:#cbd5e1;font-size:.85rem;line-height:1.5">
               <strong>Contact:</strong> ${r.customer_email || ''} · ${r.customer_phone || ''}<br>
               <strong>Updated:</strong> ${r.status_updated_at ? fmt(r.status_updated_at) : '—'}<br>
               <strong>Payment:</strong> ${r.payment_status || 'unpaid'}${r.payment_total_cents ? ` · $${(r.payment_total_cents/100).toFixed(2)}` : ''}${r.paid_at ? ` · paid ${fmt(r.paid_at)}` : ''}${r.refunded_cents ? ` · refunded $${(r.refunded_cents/100).toFixed(2)}` : ''}<br>

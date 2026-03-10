@@ -93,7 +93,8 @@
       <div>
         <a href="index.html">Home</a>
         <a href="menu.html">Menu</a>
-        <a href="booking.html">Booking</a>
+                <a href="locations.html">Locations</a>
+<a href="booking.html">Booking</a>
         <a href="admin.html">Admin</a>
         <a href="contact.html">Contact</a>
       </div>
@@ -123,6 +124,12 @@
             <option value="">Select</option>
             <option>2</option><option>3</option><option>4</option><option>5</option><option>6</option>
             <option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="location">Location</label>
+          <select id="location" name="location">
+            <option value="serenade-assisted-living">Serenade Assisted Living</option>
           </select>
         </div>
 
@@ -199,11 +206,12 @@
     let availableSlots = [];
 
     async function loadAvailability(dateKey) {
+      const locationKey = document.getElementById('location').value;
       timeSelect.innerHTML = '<option value="">Loading...</option>';
       startAtInput.value = '';
       try {
         const res = await fetch(`${API_BASE}/api/availability/check`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: dateKey })
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ date: dateKey, locationKey })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to load availability');
@@ -268,6 +276,10 @@
       startAtInput.value = timeSelect.value || '';
     });
 
+    document.getElementById('location').addEventListener('change', () => {
+      if (selectedDate) loadAvailability(selectedDate);
+    });
+
     renderCalendar();
 
     form.addEventListener('submit', async (e) => {
@@ -279,11 +291,12 @@
       const phone = document.getElementById('phone').value.trim();
       const email = document.getElementById('email').value.trim();
       const party = Number(document.getElementById('party').value);
+      const locationKey = document.getElementById('location').value;
       const startAt = startAtInput.value;
       const experience = document.getElementById('experience').value;
       const notes = document.getElementById('notes').value.trim();
 
-      if (!name || !phone || !email || !party || !startAt || !experience) {
+      if (!name || !phone || !email || !party || !locationKey || !startAt || !experience) {
         setStatus('Please complete all required fields, including selecting an available start time.', true);
         submitBtn.disabled = false;
         return;
@@ -303,7 +316,7 @@
         const holdRes = await fetch(`${API_BASE}/api/booking/hold`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ startAt, experienceType: experience, partySize: party })
+          body: JSON.stringify({ startAt, experienceType: experience, partySize: party, locationKey })
         });
         const holdData = await holdRes.json();
         if (!holdRes.ok) throw new Error(holdData.error || 'Failed to create hold');
@@ -316,6 +329,7 @@
             startAt,
             experienceType: experience,
             partySize: party,
+            locationKey,
             customer: { name, email, phone },
             notes,
             menu: { tier: null, entreeChoice: null, sides: [], extraSidesCount: 0 }
@@ -330,7 +344,8 @@
           date,
           time,
           experience,
-          party: String(party)
+          party: String(party),
+          location: locationKey
         });
         window.location.href = `reservation-made.html?${confirmationParams.toString()}`;
       } catch (err) {

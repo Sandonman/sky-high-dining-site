@@ -61,8 +61,52 @@
     <section id="termsSection" class="card hidden">
       <div class="terms">
         <h3>Sky High Dining — Booking Terms, Safety Waiver & Service Agreement</h3>
-        <p>By checking acceptance and proceeding, you agree to safety, liability, cancellation, and conduct terms for elevated dining experiences.</p>
-        <p>Key points: follow staff instructions; understand inherent risk; weather/safety changes may occur; booking is finalized after payment; cancellation within 48 hours is refunded minus a $100 late-cancellation fee; Arizona law applies.</p>
+        <p><strong>Effective Date:</strong> <span id="effectiveDate"></span></p>
+        <p>By checking the acceptance box and proceeding with booking/payment, you ("Guest," "Client," or "You") agree to the following:</p>
+
+        <h4>1) Nature of Experience</h4>
+        <p>Sky High Dining provides private elevated dining experiences, including service on a platform raised approximately 33 feet above ground. You understand this is an outdoor/adventure-style hospitality experience with inherent risks.</p>
+
+        <h4>2) Eligibility & Guest Responsibilities</h4>
+        <ul>
+          <li>You are at least 18 years old and legally able to agree to these terms.</li>
+          <li>You are booking for yourself and authorized to accept on behalf of all guests in your party.</li>
+          <li>All guests will follow staff instructions at all times.</li>
+          <li>You will disclose relevant medical conditions, mobility limitations, severe anxiety/fear of heights, or other concerns before the event.</li>
+        </ul>
+
+        <h4>3) Safety Rules (Mandatory)</h4>
+        <p>Guests must follow all operator/staff instructions and avoid unsafe behavior. Sky High Dining may stop or end an experience for safety violations, without refund where permitted by law.</p>
+
+        <h4>4) Assumption of Risk</h4>
+        <p>You acknowledge and voluntarily assume all inherent and ordinary risks associated with elevated dining and related activities.</p>
+
+        <h4>5) Release of Liability</h4>
+        <p>To the fullest extent allowed by law, you agree to release and hold harmless Sky High Dining and its team from claims arising out of ordinary negligence connected to the experience (excluding gross negligence/willful misconduct and non-waivable liability).</p>
+
+        <h4>6) Weather, Safety Holds, and Rescheduling</h4>
+        <p>The Company may postpone, relocate, or cancel due to weather or safety conditions. If the Company cancels for safety, reschedule/refund terms apply per policy.</p>
+
+        <h4>7) Booking Status, Approval, and Payment</h4>
+        <p>Some bookings remain pending until staff approval. Reservation is finalized only when confirmed and full payment is received.</p>
+
+        <h4>8) Cancellations and No-Shows</h4>
+        <p>You agree to cancellation/no-show policy in effect at checkout. Current policy: cancellations within 48 hours are refunded minus a $100 late-cancellation fee.</p>
+
+        <h4>9) Late Arrivals</h4>
+        <p>Late arrival may reduce experience time and may be treated as no-show under policy.</p>
+
+        <h4>10) Food, Allergies, and Dietary Disclosures</h4>
+        <p>You must disclose allergies/dietary restrictions in advance. Allergen-free environment cannot be guaranteed.</p>
+
+        <h4>11) Damage & Conduct</h4>
+        <p>You are responsible for damage caused by you or your guests beyond ordinary wear and tear.</p>
+
+        <h4>12) Governing Law & Venue</h4>
+        <p>These terms are governed by Arizona law. Venue is Arizona unless otherwise required by law.</p>
+
+        <h4>13) Acceptance</h4>
+        <p>By checking “I agree” and proceeding, you confirm you read, understood, and agreed to these terms.</p>
       </div>
       <div class="actions">
         <label class="checkbox">
@@ -115,6 +159,7 @@
     const acceptEl = document.getElementById('accept');
     const payBtn = document.getElementById('payBtn');
     const statusEl = document.getElementById('status');
+    document.getElementById('effectiveDate').textContent = new Date().toLocaleDateString();
 
     const setStatus = (text, isError = false) => {
       statusEl.textContent = text;

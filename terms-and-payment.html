@@ -5,27 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Sky High Dining | Terms & Payment</title>
   <style>
-    :root { --bg:#0f172a; --text:#f8fafc; --line:#334155; --muted:#94a3b8; --gold:#f59e0b; }
+    :root { --bg:#0f172a; --text:#0f172a; --line:#cbd5e1; --muted: #475569; --gold:#f59e0b; }
     * { box-sizing: border-box; }
-    body { margin:0; font-family:Inter,system-ui,sans-serif; background:linear-gradient(180deg,#020617 0%,#0f172a 100%); color:var(--text); line-height:1.6; }
+    body { margin:0; font-family:Inter,system-ui,sans-serif; background: #ffffff; color:var(--text); line-height:1.6; }
     .wrap { max-width:980px; margin:0 auto; padding:24px 18px 64px; }
-    .card { border:1px solid var(--line); border-radius:16px; background:rgba(17,24,39,.78); padding:24px; margin-bottom:14px; }
-    .meta { border:1px solid var(--line); border-radius:12px; background:#0b1220; padding:12px; margin:12px 0 18px; display:grid; gap:6px; }
+    .card { border:1px solid var(--line); border-radius:16px; background: #ffffff; padding:24px; margin-bottom:14px; }
+    .meta { border:1px solid var(--line); border-radius:12px; background:#ffffff; padding:12px; margin:12px 0 18px; display:grid; gap:6px; }
     .label { color:var(--muted); margin-right:8px; }
-    .terms { border:1px solid var(--line); border-radius:12px; padding:14px; background:rgba(2,6,23,.45); max-height:360px; overflow:auto; }
+    .terms { border:1px solid var(--line); border-radius:12px; padding:14px; background: #f8fafc; max-height:360px; overflow:auto; }
     .actions { margin-top:16px; }
     .checkbox { display:flex; align-items:flex-start; gap:10px; margin-bottom:12px; }
-    button { background:var(--gold); color:#111827; border:none; border-radius:10px; padding:11px 16px; font-weight:700; cursor:pointer; }
+    button { background:var(--gold); color:#0f172a; border:none; border-radius:10px; padding:11px 16px; font-weight:700; cursor:pointer; }
     button[disabled] { opacity:.6; cursor:not-allowed; }
-    .status { margin-top:10px; color:#cbd5e1; }
+    .status { margin-top:10px; color: #334155; }
     .hidden { display:none; }
     h2 { margin-top:0; }
     .menu-grid { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
     .choice-group { margin-top: 10px; }
     .choice-row { display: grid; gap: 8px; }
-    .choice-item { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #0b1220; }
+    .choice-item { border: 1px solid var(--line); border-radius: 10px; padding: 10px; background: #ffffff; }
     .choice-item input { margin-right: 8px; }
-    .summary { border:1px dashed #475569; border-radius:10px; padding:12px; margin-top:10px; }
+    .summary { border:1px dashed #94a3b8; border-radius:10px; padding:12px; margin-top:10px; }
     @media (max-width:720px){ .menu-grid{ grid-template-columns:1fr; } }
   </style>
 </head>
@@ -163,7 +163,7 @@
 
     const setStatus = (text, isError = false) => {
       statusEl.textContent = text;
-      statusEl.style.color = isError ? '#fca5a5' : '#cbd5e1';
+      statusEl.style.color = isError ? '#fca5a5' : '#94a3b8';
     };
 
     function getDaypart(experienceType = '') {
@@ -228,7 +228,7 @@
       costSummary.innerHTML = `
         <div><strong>Total due at checkout:</strong> $${total.toFixed(2)}</div>
         <div><strong>Late-cancellation policy:</strong> Cancellations within 48 hours are refunded minus a $100 fee.</div>
-        <div style="color:#94a3b8;">Party ${party} × ${tier} tier (${included} included sides, ${extras} extra side selections)</div>
+        <div style="color: #475569;">Party ${party} × ${tier} tier (${included} included sides, ${extras} extra side selections)</div>
       `;
     }
 

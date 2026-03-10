@@ -90,12 +90,28 @@
       gap: 10px;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
+    .gallery-grid figure {
+      margin: 0;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #0b1220;
+    }
+    .gallery-grid a {
+      display: block;
+      text-decoration: none;
+    }
     .gallery-grid img {
       width: 100%;
       height: 240px;
       object-fit: cover;
-      border-radius: 10px;
-      border: 1px solid #334155;
+      display: block;
+    }
+    .gallery-grid figcaption {
+      padding: 10px;
+      color: #cbd5e1;
+      font-size: .92rem;
+      line-height: 1.45;
     }
     .footer { margin-top: 18px; color: var(--muted); }
   </style>
@@ -137,9 +153,24 @@
       <h2>Past Events</h2>
       <p>Take a look at some recent Sky High setups and guest experiences.</p>
       <div class="gallery-grid">
-        <img src="images/past-event-1.jpg" alt="Sky High Dining platform illuminated at night" />
-        <img src="images/past-event-2.jpg" alt="Elevated dining platform at night with guests" />
-        <img src="images/past-event-3.jpg" alt="Sky High event setup with mountain backdrop" />
+        <figure>
+          <a href="images/past-event-1.jpg" target="_blank" rel="noopener noreferrer">
+            <img src="images/past-event-1.jpg" alt="Sky High Dining platform illuminated at night" />
+          </a>
+          <figcaption>Evening Celebration Setup — Elevated dinner platform glowing under the night sky.</figcaption>
+        </figure>
+        <figure>
+          <a href="images/past-event-2.jpg" target="_blank" rel="noopener noreferrer">
+            <img src="images/past-event-2.jpg" alt="Elevated dining platform at night with guests" />
+          </a>
+          <figcaption>Private Night Experience — Guest table service during a nighttime event.</figcaption>
+        </figure>
+        <figure>
+          <a href="images/past-event-3.jpg" target="_blank" rel="noopener noreferrer">
+            <img src="images/past-event-3.jpg" alt="Sky High event setup with mountain backdrop" />
+          </a>
+          <figcaption>Sunset-to-Dusk View — Scenic event backdrop with panoramic mountain views.</figcaption>
+        </figure>
       </div>
     </section>
 

@@ -256,7 +256,7 @@ app.post('/api/public/reservations/:id/menu', async (req, res) => {
   }
 });
 
-app.post('/api/payment/deposit/checkout-link', async (req, res) => {
+app.post(['/api/payment/checkout-link', '/api/payment/deposit/checkout-link'], async (req, res) => {
   const { reservationId, token, termsAccepted } = req.body;
 
   if (!reservationId || !token) {
@@ -274,7 +274,8 @@ app.post('/api/payment/deposit/checkout-link', async (req, res) => {
   try {
     const reservationResult = await pool.query(
       `select id, customer_email, customer_name, reservation_start_at, status,
-              reservation_access_token, terms_accepted_at
+              reservation_access_token, terms_accepted_at, party_size, menu_tier,
+              entree_choice, extra_sides_count
        from reservations
        where id = $1 and reservation_access_token = $2`,
       [reservationId, token]
@@ -300,7 +301,17 @@ app.post('/api/payment/deposit/checkout-link', async (req, res) => {
     );
 
     const websiteBase = (process.env.WEBSITE_BASE_URL || 'https://sandonman.github.io/sky-high-dining-site').replace(/\/$/, '');
-    const successUrl = `${websiteBase}/reservation-made.html?reservationId=${encodeURIComponent(reservation.id)}&status=deposit-paid`;
+    if (!reservation.menu_tier || !reservation.entree_choice) {
+      return res.status(400).json({ error: 'Menu selection is required before payment' });
+    }
+
+    const tierPrice = reservation.menu_tier === 'premium' ? 64.99 : 49.99;
+    const extraSidesCount = Number(reservation.extra_sides_count || 0);
+    const partySize = Number(reservation.party_size || 0);
+    const totalAmount = (partySize * tierPrice) + (partySize * extraSidesCount * 5);
+    const totalCents = Math.round(totalAmount * 100);
+
+    const successUrl = `${websiteBase}/reservation-made.html?reservationId=${encodeURIComponent(reservation.id)}&status=paid`;
     const cancelUrl = `${websiteBase}/terms-and-payment.html?reservationId=${encodeURIComponent(reservation.id)}&token=${encodeURIComponent(token)}`;
 
     const session = await stripe.checkout.sessions.create({
@@ -312,10 +323,10 @@ app.post('/api/payment/deposit/checkout-link', async (req, res) => {
           price_data: {
             currency: 'usd',
             product_data: {
-              name: 'Sky High Dining Reservation Deposit',
+              name: 'Sky High Dining Reservation Payment',
               description: `Reservation ${reservation.id}`
             },
-            unit_amount: 10000
+            unit_amount: totalCents
           },
           quantity: 1
         }
@@ -399,7 +410,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
           <p>Hi ${reservation.customer_name},</p>
           <p>Great news — your reservation for <strong>${whenText}</strong> has been <strong>approved</strong>.</p>
           <p>Reservation ID: <code>${reservation.id}</code></p>
-          <p>Please review/accept terms and pay your deposit here:</p>
+          <p>Please review/accept terms, choose your menu, and complete payment here:</p>
           <p><a href="${termsLink}">Review Terms & Proceed to Payment</a></p>
         `
       });

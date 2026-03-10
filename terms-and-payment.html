@@ -32,7 +32,7 @@
 <body>
   <main class="wrap">
     <section class="card">
-      <h1>Terms Acceptance & Deposit</h1>
+      <h1>Terms Acceptance & Payment</h1>
       <p>Please review terms, choose your menu, and then continue to payment.</p>
       <div class="meta" id="reservation-meta">Loading reservation details…</div>
       <div id="not-approved" class="status hidden"></div>
@@ -62,14 +62,14 @@
       <div class="terms">
         <h3>Sky High Dining — Booking Terms, Safety Waiver & Service Agreement</h3>
         <p>By checking acceptance and proceeding, you agree to safety, liability, cancellation, and conduct terms for elevated dining experiences.</p>
-        <p>Key points: follow staff instructions; understand inherent risk; weather/safety changes may occur; booking is finalized after required payment; Arizona law applies.</p>
+        <p>Key points: follow staff instructions; understand inherent risk; weather/safety changes may occur; booking is finalized after payment; cancellation within 48 hours is refunded minus a $100 late-cancellation fee; Arizona law applies.</p>
       </div>
       <div class="actions">
         <label class="checkbox">
           <input id="accept" type="checkbox" />
           <span>I agree to the Terms, Safety Waiver, Cancellation Policy, and Liability Release.</span>
         </label>
-        <button id="payBtn" type="button">Save Menu & Proceed to Deposit Payment</button>
+        <button id="payBtn" type="button">Save Menu & Proceed to Payment</button>
         <div id="status" class="status"></div>
       </div>
     </section>
@@ -86,15 +86,18 @@
     const PRICING = { standard: 49.99, premium: 64.99, extraSidePerPerson: 5 };
     const MENU = {
       breakfast: {
-        entrees: ['Classic Breakfast Platter','Breakfast Burrito Board','Steak & Eggs Platter'],
+        standardEntrees: ['Classic Breakfast Platter','Breakfast Burrito Board'],
+        premiumEntrees: ['Steak & Eggs Platter'],
         sides: ['Breakfast potatoes','Seasonal fruit','Bacon','Sausage','Pastry basket']
       },
       lunch: {
-        entrees: ['Burger/Cheeseburger Board','Chicken Taco Platter','Pulled Pork Sandwich Board','Sub Sandwiches','Filet Mignon Platter'],
+        standardEntrees: ['Burger/Cheeseburger Board','Chicken Taco Platter','Pulled Pork Sandwich Board','Sub Sandwiches'],
+        premiumEntrees: ['Filet Mignon Platter'],
         sides: ['Fries','House chips','Coleslaw','Rice & beans','Garden salad','Chips & salsa']
       },
       dinner: {
-        entrees: ['Street Taco Platter (chicken or pork)','BBQ Chicken Platter','Burger/Cheeseburger Board','Filet Mignon Platter'],
+        standardEntrees: ['Street Taco Platter (chicken or pork)','BBQ Chicken Platter','Burger/Cheeseburger Board'],
+        premiumEntrees: ['Filet Mignon Platter'],
         sides: ['Rice & beans','Baked potato','Roasted vegetables','Caesar salad','Chips & salsa','Fresh-baked bread','House salad']
       }
     };
@@ -143,7 +146,9 @@
     function renderEntreeOptions() {
       const daypart = getDaypart(reservation.experience_type);
       const cfg = MENU[daypart];
-      entreeWrap.innerHTML = cfg.entrees.map((e, i) => `
+      const tier = selectedTier();
+      const entreeList = tier === 'premium' ? cfg.premiumEntrees : cfg.standardEntrees;
+      entreeWrap.innerHTML = entreeList.map((e, i) => `
         <label class="choice-item"><input type="radio" name="entree" value="${e}" ${i === 0 ? 'checked' : ''}/> ${e}</label>
       `).join('');
     }
@@ -175,10 +180,9 @@
       const included = tier === 'premium' ? 3 : 2;
       const extras = Math.max(0, selectedSides().length - included);
       const total = (party * basePerPerson) + (party * extras * PRICING.extraSidePerPerson);
-      const dueNow = 100;
       costSummary.innerHTML = `
-        <div><strong>Estimated total:</strong> $${total.toFixed(2)}</div>
-        <div><strong>Deposit due at checkout:</strong> $${dueNow.toFixed(2)}</div>
+        <div><strong>Total due at checkout:</strong> $${total.toFixed(2)}</div>
+        <div><strong>Late-cancellation policy:</strong> Cancellations within 48 hours are refunded minus a $100 fee.</div>
         <div style="color:#94a3b8;">Party ${party} × ${tier} tier (${included} included sides, ${extras} extra side selections)</div>
       `;
     }
@@ -214,7 +218,12 @@
     }
 
     document.addEventListener('change', (e) => {
-      if (e.target.name === 'menuTier' || e.target.name === 'entree' || e.target.classList.contains('sideCheck')) {
+      if (e.target.name === 'menuTier') {
+        renderEntreeOptions();
+        updateSummary();
+        return;
+      }
+      if (e.target.name === 'entree' || e.target.classList.contains('sideCheck')) {
         updateSummary();
       }
     });
@@ -238,7 +247,7 @@
         const menuData = await menuRes.json();
         if (!menuRes.ok) throw new Error(menuData.error || 'Failed to save menu selection');
 
-        const payRes = await fetch(`${API_BASE}/api/payment/deposit/checkout-link`, {
+        const payRes = await fetch(`${API_BASE}/api/payment/checkout-link`, {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ reservationId, token, termsAccepted: true })
         });

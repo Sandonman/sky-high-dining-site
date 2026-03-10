@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import Stripe from 'stripe';
 import { Pool } from 'pg';
+import crypto from 'crypto';
 
 const app = express();
 app.use(cors());
@@ -45,6 +46,12 @@ function formatReservationDate(iso) {
   }
 }
 
+function buildTermsLink(reservationId, accessToken) {
+  const websiteBase = process.env.WEBSITE_BASE_URL || 'https://sandonman.github.io/sky-high-dining-site';
+  const params = new URLSearchParams({ reservationId, token: accessToken });
+  return `${websiteBase.replace(/\/$/, '')}/terms-and-payment.html?${params.toString()}`;
+}
+
 const PORT = process.env.PORT || 8787;
 const HOLD_MINUTES = 10;
 const DURATION_MINUTES = 90;
@@ -56,7 +63,6 @@ const isCustom = (experienceType = '') => experienceType.toLowerCase().includes(
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 app.post('/api/availability/check', async (req, res) => {
-  // Placeholder: wire real window generation next.
   const { date } = req.body;
   if (!date) return res.status(400).json({ error: 'date is required' });
   return res.json({ availableStartTimes: [] });
@@ -120,12 +126,14 @@ app.post('/api/booking/submit', async (req, res) => {
   }
 
   const status = isCustom(experienceType) ? 'pending_staff_approval' : 'pending';
+  const accessToken = crypto.randomBytes(24).toString('hex');
 
   const result = await pool.query(
     `insert into reservations (
       customer_name, customer_email, customer_phone, party_size, experience_type,
-      reservation_start_at, status, menu_tier, entree_choice, sides, extra_sides_count, notes
-    ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12)
+      reservation_start_at, status, menu_tier, entree_choice, sides, extra_sides_count, notes,
+      reservation_access_token
+    ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10::jsonb,$11,$12,$13)
     returning id, status`,
     [
       customer.name,
@@ -139,7 +147,8 @@ app.post('/api/booking/submit', async (req, res) => {
       menu.entreeChoice || null,
       JSON.stringify(menu.sides || []),
       menu.extraSidesCount || 0,
-      notes || null
+      notes || null,
+      accessToken
     ]
   );
 
@@ -152,6 +161,8 @@ app.post('/api/booking/submit', async (req, res) => {
 
   const whenText = formatReservationDate(startAt);
   const statusText = result.rows[0].status === 'pending_staff_approval' ? 'pending staff approval' : 'pending';
+  const termsLink = buildTermsLink(result.rows[0].id, accessToken);
+
   await sendEmail({
     to: customer.email,
     subject: 'Sky High Dining reservation received',
@@ -160,11 +171,111 @@ app.post('/api/booking/submit', async (req, res) => {
       <p>We received your reservation request for <strong>${whenText}</strong>.</p>
       <p>Current status: <strong>${statusText}</strong>.</p>
       <p>Reservation ID: <code>${result.rows[0].id}</code></p>
+      <p>Before payment, please review and accept our terms here:</p>
+      <p><a href="${termsLink}">Review Terms & Proceed to Payment</a></p>
       <p>We’ll email you again once this is approved or declined.</p>
     `
   });
 
   return res.json({ reservationId: result.rows[0].id, status: result.rows[0].status });
+});
+
+app.get('/api/public/reservations/:id', async (req, res) => {
+  const { id } = req.params;
+  const token = req.query.token;
+
+  if (!token) return res.status(400).json({ error: 'token is required' });
+
+  try {
+    const result = await pool.query(
+      `select id, customer_name, customer_email, party_size, experience_type,
+              reservation_start_at, status, terms_accepted_at
+       from reservations
+       where id = $1 and reservation_access_token = $2`,
+      [id, token]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Reservation not found' });
+    }
+
+    return res.json({ reservation: result.rows[0] });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to load reservation', detail: e.message });
+  }
+});
+
+app.post('/api/payment/deposit/checkout-link', async (req, res) => {
+  const { reservationId, token, termsAccepted } = req.body;
+
+  if (!reservationId || !token) {
+    return res.status(400).json({ error: 'reservationId and token are required' });
+  }
+
+  if (!termsAccepted) {
+    return res.status(400).json({ error: 'You must accept terms before payment' });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return res.status(400).json({ error: 'Stripe not configured yet' });
+  }
+
+  try {
+    const reservationResult = await pool.query(
+      `select id, customer_email, customer_name, reservation_start_at, status,
+              reservation_access_token, terms_accepted_at
+       from reservations
+       where id = $1 and reservation_access_token = $2`,
+      [reservationId, token]
+    );
+
+    if (reservationResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Reservation not found' });
+    }
+
+    const reservation = reservationResult.rows[0];
+
+    await pool.query(
+      `update reservations
+       set terms_accepted_at = coalesce(terms_accepted_at, now()),
+           terms_accepted_ip = $1,
+           terms_accepted_user_agent = $2
+       where id = $3`,
+      [req.ip || null, req.headers['user-agent'] || null, reservationId]
+    );
+
+    const websiteBase = (process.env.WEBSITE_BASE_URL || 'https://sandonman.github.io/sky-high-dining-site').replace(/\/$/, '');
+    const successUrl = `${websiteBase}/reservation-made.html?reservationId=${encodeURIComponent(reservation.id)}&status=deposit-paid`;
+    const cancelUrl = `${websiteBase}/terms-and-payment.html?reservationId=${encodeURIComponent(reservation.id)}&token=${encodeURIComponent(token)}`;
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      customer_email: reservation.customer_email,
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Sky High Dining Reservation Deposit',
+              description: `Reservation ${reservation.id}`
+            },
+            unit_amount: 10000
+          },
+          quantity: 1
+        }
+      ],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        reservationId: reservation.id
+      }
+    });
+
+    return res.json({ checkoutUrl: session.url });
+  } catch (e) {
+    return res.status(500).json({ error: 'Failed to create checkout session', detail: e.message });
+  }
 });
 
 function requireAdmin(req, res) {
@@ -183,7 +294,8 @@ app.get('/api/admin/reservations', async (req, res) => {
   try {
     const result = await pool.query(
       `select id, customer_name, customer_email, customer_phone, party_size, experience_type,
-              reservation_start_at, status, created_at, notes, admin_notes, status_updated_at
+              reservation_start_at, status, created_at, notes, admin_notes, status_updated_at,
+              terms_accepted_at
        from reservations
        order by created_at desc
        limit 200`
@@ -212,7 +324,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
            admin_notes = $2,
            status_updated_at = now()
        where id = $3
-       returning id, status, admin_notes, status_updated_at, customer_name, customer_email, reservation_start_at`,
+       returning id, status, admin_notes, status_updated_at, customer_name, customer_email, reservation_start_at, reservation_access_token`,
       [status, adminNotes || null, id]
     );
 
@@ -224,6 +336,7 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
     const whenText = formatReservationDate(reservation.reservation_start_at);
 
     if (reservation.status === 'confirmed') {
+      const termsLink = buildTermsLink(reservation.id, reservation.reservation_access_token);
       await sendEmail({
         to: reservation.customer_email,
         subject: 'Sky High Dining reservation approved',
@@ -231,6 +344,8 @@ app.post('/api/admin/reservations/:id/status', async (req, res) => {
           <p>Hi ${reservation.customer_name},</p>
           <p>Great news — your reservation for <strong>${whenText}</strong> has been <strong>approved</strong>.</p>
           <p>Reservation ID: <code>${reservation.id}</code></p>
+          <p>Please review/accept terms and pay your deposit here:</p>
+          <p><a href="${termsLink}">Review Terms & Proceed to Payment</a></p>
         `
       });
     } else if (reservation.status === 'cancelled') {

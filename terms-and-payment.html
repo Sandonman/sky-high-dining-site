@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sky High Dining | Terms & Payment</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --text: #f8fafc;
+      --line: #334155;
+      --muted: #94a3b8;
+      --gold: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 24px 18px 64px; }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(17,24,39,.78);
+      padding: 24px;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    h1 { font-size: 2rem; margin-bottom: 8px; }
+    h2 { margin-top: 20px; font-size: 1.2rem; color: #fde68a; }
+    p, li { color: #dbe3ef; }
+    .meta {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #0b1220;
+      padding: 12px;
+      margin: 12px 0 18px;
+      display: grid;
+      gap: 6px;
+    }
+    .label { color: var(--muted); margin-right: 8px; }
+    .terms {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      background: rgba(2,6,23,.45);
+      max-height: 420px;
+      overflow: auto;
+    }
+    .actions { margin-top: 16px; }
+    .checkbox {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    button {
+      background: var(--gold);
+      color: #111827;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    button[disabled] { opacity: .6; cursor: not-allowed; }
+    .status { margin-top: 10px; color: #cbd5e1; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="card">
+      <h1>Terms Acceptance & Deposit</h1>
+      <p>Please review the terms below. To continue to payment, you must check the agreement box.</p>
+
+      <div class="meta" id="reservation-meta">Loading reservation details…</div>
+
+      <div class="terms">
+        <h2>Sky High Dining — Booking Terms, Safety Waiver & Service Agreement</h2>
+        <p><strong>Effective Date:</strong> <span id="effectiveDate"></span></p>
+        <p>By checking the acceptance box and proceeding with booking/payment, you (“Guest,” “Client,” or “You”) agree to the following:</p>
+
+        <h3>1) Nature of Experience</h3>
+        <p>Sky High Dining provides private elevated dining experiences, including service on a platform raised approximately 33 feet above ground. You understand this is an outdoor/adventure-style hospitality experience with inherent risks.</p>
+
+        <h3>2) Eligibility & Guest Responsibilities</h3>
+        <ul>
+          <li>You are at least 18 years old and legally able to agree to these terms.</li>
+          <li>You are booking for yourself and authorized to accept on behalf of all guests in your party.</li>
+          <li>All guests will follow staff instructions at all times.</li>
+          <li>You will disclose relevant medical conditions, mobility limitations, severe anxiety/fear of heights, or other concerns before the event.</li>
+        </ul>
+
+        <h3>3) Safety Rules (Mandatory)</h3>
+        <p>Guests must follow all operator/staff instructions and avoid unsafe behavior. Sky High Dining may stop or end an experience for safety violations, without refund where permitted by law.</p>
+
+        <h3>4) Assumption of Risk</h3>
+        <p>You acknowledge and voluntarily assume all inherent and ordinary risks associated with elevated dining and related activities.</p>
+
+        <h3>5) Release of Liability</h3>
+        <p>To the fullest extent allowed by law, you agree to release and hold harmless Sky High Dining and its team from claims arising out of ordinary negligence connected to the experience (excluding gross negligence/willful misconduct and non-waivable liability).</p>
+
+        <h3>6) Weather, Safety Holds, and Rescheduling</h3>
+        <p>The Company may postpone, relocate, or cancel due to weather or safety conditions. If the Company cancels for safety, reschedule/refund terms apply per policy.</p>
+
+        <h3>7) Booking Status, Approval, and Payment</h3>
+        <p>Some bookings remain pending until staff approval. Reservation is finalized only when confirmed and required payment/deposit is received.</p>
+
+        <h3>8) Deposits, Cancellations, and No-Shows</h3>
+        <p>You agree to cancellation/no-show policy in effect at checkout, including deposit and refund limits.</p>
+
+        <h3>9) Late Arrivals</h3>
+        <p>Late arrival may reduce experience time and may be treated as no-show under policy.</p>
+
+        <h3>10) Food, Allergies, and Dietary Disclosures</h3>
+        <p>You must disclose allergies/dietary restrictions in advance. Allergen-free environment cannot be guaranteed.</p>
+
+        <h3>11) Damage & Conduct</h3>
+        <p>You are responsible for damage caused by you or your guests beyond ordinary wear and tear.</p>
+
+        <h3>12) Governing Law & Venue</h3>
+        <p>These terms are governed by Arizona law. Venue is Arizona unless otherwise required by law.</p>
+
+        <h3>13) Acceptance</h3>
+        <p>By checking “I agree” and proceeding, you confirm you read, understood, and agreed to these terms.</p>
+      </div>
+
+      <div class="actions">
+        <label class="checkbox">
+          <input id="accept" type="checkbox" />
+          <span>I have read and agree to the Sky High Dining Terms, Safety Waiver, Cancellation Policy, and Liability Release.</span>
+        </label>
+
+        <button id="payBtn" type="button">Agree & Proceed to Deposit Payment</button>
+        <div id="status" class="status"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.BOOKING_API_BASE = 'https://sky-high-dining-site.onrender.com';
+    const API_BASE = window.BOOKING_API_BASE || '';
+
+    const params = new URLSearchParams(window.location.search);
+    const reservationId = params.get('reservationId');
+    const token = params.get('token');
+
+    const metaEl = document.getElementById('reservation-meta');
+    const statusEl = document.getElementById('status');
+    const payBtn = document.getElementById('payBtn');
+    const acceptEl = document.getElementById('accept');
+    document.getElementById('effectiveDate').textContent = new Date().toLocaleDateString();
+
+    const setStatus = (text, isError = false) => {
+      statusEl.textContent = text;
+      statusEl.style.color = isError ? '#fca5a5' : '#cbd5e1';
+    };
+
+    async function loadReservation() {
+      if (!reservationId || !token) {
+        metaEl.textContent = 'Missing reservation link details. Please use the email link you were sent.';
+        payBtn.disabled = true;
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/public/reservations/${encodeURIComponent(reservationId)}?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Unable to load reservation.');
+
+        const r = data.reservation;
+        const startLocal = new Date(r.reservation_start_at).toLocaleString('en-US', { timeZone: 'America/Phoenix' });
+        metaEl.innerHTML = `
+          <div><span class="label">Reservation ID:</span> ${r.id}</div>
+          <div><span class="label">Name:</span> ${r.customer_name}</div>
+          <div><span class="label">Email:</span> ${r.customer_email}</div>
+          <div><span class="label">Experience:</span> ${r.experience_type}</div>
+          <div><span class="label">Party Size:</span> ${r.party_size}</div>
+          <div><span class="label">Date/Time:</span> ${startLocal}</div>
+          <div><span class="label">Status:</span> ${r.status}</div>
+        `;
+      } catch (err) {
+        metaEl.textContent = err.message || 'Unable to load reservation.';
+        payBtn.disabled = true;
+      }
+    }
+
+    payBtn.addEventListener('click', async () => {
+      if (!acceptEl.checked) {
+        setStatus('Please check the agreement box before continuing.', true);
+        return;
+      }
+
+      payBtn.disabled = true;
+      setStatus('Creating secure payment link...');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/payment/deposit/checkout-link`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reservationId, token, termsAccepted: true })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Unable to create payment link.');
+
+        if (!data.checkoutUrl) throw new Error('Checkout URL was not returned.');
+
+        window.location.href = data.checkoutUrl;
+      } catch (err) {
+        setStatus(err.message || 'Something went wrong.', true);
+        payBtn.disabled = false;
+      }
+    });
+
+    loadReservation();
+  </script>
+</body>
+</html>

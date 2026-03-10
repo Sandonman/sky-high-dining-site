@@ -9,6 +9,9 @@
 - `DATABASE_URL` = your Supabase Postgres URI
 - `STRIPE_SECRET_KEY` = your Stripe secret key (or test key)
 - `STRIPE_WEBHOOK_SECRET` = webhook secret (optional for now)
+- `RESEND_API_KEY` = Resend API key (for booking/status emails)
+- `EMAIL_FROM` = verified sender (or `onboarding@resend.dev` for test)
+- `WEBSITE_BASE_URL` = public website URL (example: `https://sandonman.github.io/sky-high-dining-site`)
 
 ## 3) Deploy
 - Click deploy and copy API URL (example: `https://sky-high-dining-api.onrender.com`)

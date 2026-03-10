@@ -47,6 +47,12 @@ create table if not exists reservation_holds (
 
 alter table reservations add column if not exists admin_notes text;
 alter table reservations add column if not exists status_updated_at timestamptz;
+alter table reservations add column if not exists reservation_access_token text;
+alter table reservations add column if not exists terms_accepted_at timestamptz;
+alter table reservations add column if not exists terms_accepted_ip text;
+alter table reservations add column if not exists terms_accepted_user_agent text;
+
+create unique index if not exists idx_reservation_access_token on reservations(reservation_access_token);
 
 create index if not exists idx_res_start on reservations(reservation_start_at);
 create index if not exists idx_res_status on reservations(status);

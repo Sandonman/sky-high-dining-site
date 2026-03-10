@@ -134,7 +134,6 @@
             <button type="button" id="nextMonth">▶</button>
           </div>
           <div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;"></div>
-          <div id="slotWrap" style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;"></div>
           <label for="timeSelect" style="display:block;margin-top:10px;">Available Times</label>
           <select id="timeSelect" style="width:100%;border:1px solid #334155;background:#0b1220;color:#f8fafc;border-radius:10px;padding:10px 12px;">
             <option value="">Select a date first</option>
@@ -184,7 +183,6 @@
     const submitBtn = document.getElementById('submit-btn');
     const monthLabel = document.getElementById('monthLabel');
     const calendarGrid = document.getElementById('calendarGrid');
-    const slotWrap = document.getElementById('slotWrap');
     const timeSelect = document.getElementById('timeSelect');
     const startAtInput = document.getElementById('startAt');
 
@@ -201,7 +199,6 @@
     let availableSlots = [];
 
     async function loadAvailability(dateKey) {
-      slotWrap.innerHTML = 'Loading available times...';
       timeSelect.innerHTML = '<option value="">Loading...</option>';
       startAtInput.value = '';
       try {
@@ -213,37 +210,18 @@
         availableSlots = data.availableStartTimes || [];
         renderSlots();
       } catch (e) {
-        slotWrap.innerHTML = `<span style="color:#fca5a5;">${e.message}</span>`;
-        timeSelect.innerHTML = '<option value="">No times available</option>';
+        timeSelect.innerHTML = `<option value="">${e.message}</option>`;
       }
     }
 
     function renderSlots() {
       if (!availableSlots.length) {
-        slotWrap.innerHTML = '<span style="color:#94a3b8;">No available start times for this date.</span>';
         timeSelect.innerHTML = '<option value="">No available times</option>';
         return;
       }
 
       timeSelect.innerHTML = '<option value="">Choose an available time</option>' +
         availableSlots.map(iso => `<option value="${iso}">${phoenixFmt.format(new Date(iso))}</option>`).join('');
-
-      slotWrap.innerHTML = '';
-      availableSlots.forEach(iso => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.textContent = phoenixFmt.format(new Date(iso));
-        b.style.background = '#0b1220';
-        b.style.color = '#f8fafc';
-        b.style.border = '1px solid #334155';
-        b.onclick = () => {
-          startAtInput.value = iso;
-          timeSelect.value = iso;
-          [...slotWrap.querySelectorAll('button')].forEach(x => x.style.outline = 'none');
-          b.style.outline = '2px solid #22c55e';
-        };
-        slotWrap.appendChild(b);
-      });
     }
 
     function renderCalendar() {
@@ -288,10 +266,6 @@
 
     timeSelect.addEventListener('change', () => {
       startAtInput.value = timeSelect.value || '';
-      if (!timeSelect.value) return;
-      [...slotWrap.querySelectorAll('button')].forEach(btn => {
-        btn.style.outline = btn.textContent === phoenixFmt.format(new Date(timeSelect.value)) ? '2px solid #22c55e' : 'none';
-      });
     });
 
     renderCalendar();

@@ -474,6 +474,11 @@ app.post(['/api/payment/checkout-link', '/api/payment/deposit/checkout-link'], a
       cancel_url: cancelUrl,
       metadata: {
         reservationId: reservation.id
+      },
+      payment_intent_data: {
+        metadata: {
+          reservationId: reservation.id
+        }
       }
     });
 

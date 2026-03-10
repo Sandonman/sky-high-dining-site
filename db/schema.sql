@@ -51,8 +51,15 @@ alter table reservations add column if not exists reservation_access_token text;
 alter table reservations add column if not exists terms_accepted_at timestamptz;
 alter table reservations add column if not exists terms_accepted_ip text;
 alter table reservations add column if not exists terms_accepted_user_agent text;
+alter table reservations add column if not exists stripe_checkout_session_id text;
+alter table reservations add column if not exists payment_status text not null default 'unpaid';
+alter table reservations add column if not exists payment_total_cents int;
+alter table reservations add column if not exists paid_at timestamptz;
+alter table reservations add column if not exists refunded_cents int;
+alter table reservations add column if not exists refunded_at timestamptz;
 
 create unique index if not exists idx_reservation_access_token on reservations(reservation_access_token);
+create index if not exists idx_res_payment_status on reservations(payment_status);
 
 create index if not exists idx_res_start on reservations(reservation_start_at);
 create index if not exists idx_res_status on reservations(status);

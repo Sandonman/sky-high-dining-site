@@ -159,6 +159,7 @@
             <td colspan="7" style="background:#0b1220;color:#cbd5e1;font-size:.85rem;line-height:1.5">
               <strong>Contact:</strong> ${r.customer_email || ''} · ${r.customer_phone || ''}<br>
               <strong>Updated:</strong> ${r.status_updated_at ? fmt(r.status_updated_at) : '—'}<br>
+              <strong>Payment:</strong> ${r.payment_status || 'unpaid'}${r.payment_total_cents ? ` · $${(r.payment_total_cents/100).toFixed(2)}` : ''}${r.paid_at ? ` · paid ${fmt(r.paid_at)}` : ''}${r.refunded_cents ? ` · refunded $${(r.refunded_cents/100).toFixed(2)}` : ''}<br>
               <strong>ID:</strong> <span style="font-family:monospace">${r.id}</span><br>
               <strong>Customer Notes:</strong> ${r.notes ? r.notes : '—'}<br>
               <strong>Admin Notes:</strong>

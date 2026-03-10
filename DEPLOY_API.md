@@ -27,7 +27,20 @@ In `booking.html`, set before the script logic:
 
 (Place this above the existing booking script.)
 
-## 5) Test
+## 5) Stripe webhook framework setup (when ready)
+- In Stripe Dashboard → Developers → Webhooks, add endpoint:
+  - `https://sky-high-dining-site.onrender.com/api/payment/webhook`
+- Subscribe to events:
+  - `checkout.session.completed`
+  - `checkout.session.expired`
+  - `payment_intent.payment_failed`
+  - `charge.refunded`
+- Copy signing secret (`whsec_...`) into Render as `STRIPE_WEBHOOK_SECRET`
+- Redeploy service
+
+## 6) Test
 - Visit `/booking.html`
 - Submit a request
-- Confirm rows in Supabase tables: `reservation_holds`, `reservations`
+- Approve in `/admin.html`
+- Open terms link from approval email and complete Stripe checkout
+- Confirm `reservations.payment_status` updates (`checkout_created` → `paid`)

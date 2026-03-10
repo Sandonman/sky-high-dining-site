@@ -7,7 +7,11 @@ import crypto from 'crypto';
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({
+  verify: (req, _res, buf) => {
+    req.rawBody = buf;
+  }
+}));
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -50,6 +54,12 @@ function buildTermsLink(reservationId, accessToken) {
   const websiteBase = process.env.WEBSITE_BASE_URL || 'https://sandonman.github.io/sky-high-dining-site';
   const params = new URLSearchParams({ reservationId, token: accessToken });
   return `${websiteBase.replace(/\/$/, '')}/terms-and-payment.html?${params.toString()}`;
+}
+
+function calculateTotalCents({ partySize, menuTier, extraSidesCount }) {
+  const tierPrice = menuTier === 'premium' ? 64.99 : 49.99;
+  const totalAmount = (Number(partySize || 0) * tierPrice) + (Number(partySize || 0) * Number(extraSidesCount || 0) * 5);
+  return Math.round(totalAmount * 100);
 }
 
 const PORT = process.env.PORT || 8787;
@@ -305,11 +315,11 @@ app.post(['/api/payment/checkout-link', '/api/payment/deposit/checkout-link'], a
       return res.status(400).json({ error: 'Menu selection is required before payment' });
     }
 
-    const tierPrice = reservation.menu_tier === 'premium' ? 64.99 : 49.99;
-    const extraSidesCount = Number(reservation.extra_sides_count || 0);
-    const partySize = Number(reservation.party_size || 0);
-    const totalAmount = (partySize * tierPrice) + (partySize * extraSidesCount * 5);
-    const totalCents = Math.round(totalAmount * 100);
+    const totalCents = calculateTotalCents({
+      partySize: reservation.party_size,
+      menuTier: reservation.menu_tier,
+      extraSidesCount: reservation.extra_sides_count
+    });
 
     const successUrl = `${websiteBase}/reservation-made.html?reservationId=${encodeURIComponent(reservation.id)}&status=paid`;
     const cancelUrl = `${websiteBase}/terms-and-payment.html?reservationId=${encodeURIComponent(reservation.id)}&token=${encodeURIComponent(token)}`;
@@ -338,9 +348,85 @@ app.post(['/api/payment/checkout-link', '/api/payment/deposit/checkout-link'], a
       }
     });
 
+    await pool.query(
+      `update reservations
+       set stripe_checkout_session_id = $1,
+           payment_total_cents = $2,
+           payment_status = 'checkout_created',
+           updated_at = now()
+       where id = $3`,
+      [session.id, totalCents, reservation.id]
+    );
+
     return res.json({ checkoutUrl: session.url });
   } catch (e) {
     return res.status(500).json({ error: 'Failed to create checkout session', detail: e.message });
+  }
+});
+
+app.post('/api/payment/webhook', async (req, res) => {
+  try {
+    const signature = req.header('stripe-signature');
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    let event = req.body;
+
+    if (webhookSecret && signature) {
+      event = stripe.webhooks.constructEvent(req.rawBody, signature, webhookSecret);
+    }
+
+    const object = event?.data?.object || {};
+    const eventType = event?.type;
+    const reservationId = object?.metadata?.reservationId || null;
+
+    if (!reservationId) {
+      return res.json({ received: true, ignored: 'missing reservationId' });
+    }
+
+    if (eventType === 'checkout.session.completed') {
+      await pool.query(
+        `update reservations
+         set payment_status = 'paid',
+             paid_at = now(),
+             stripe_checkout_session_id = coalesce($1, stripe_checkout_session_id),
+             stripe_payment_intent_id = coalesce($2, stripe_payment_intent_id),
+             updated_at = now()
+         where id = $3`,
+        [object.id || null, object.payment_intent || null, reservationId]
+      );
+    } else if (eventType === 'checkout.session.expired') {
+      await pool.query(
+        `update reservations
+         set payment_status = 'checkout_expired',
+             updated_at = now()
+         where id = $1 and coalesce(payment_status, '') <> 'paid'`,
+        [reservationId]
+      );
+    } else if (eventType === 'payment_intent.payment_failed') {
+      await pool.query(
+        `update reservations
+         set payment_status = 'payment_failed',
+             stripe_payment_intent_id = coalesce($1, stripe_payment_intent_id),
+             updated_at = now()
+         where id = $2`,
+        [object.id || null, reservationId]
+      );
+    } else if (eventType === 'charge.refunded') {
+      const amountRefunded = Number(object.amount_refunded || 0);
+      await pool.query(
+        `update reservations
+         set payment_status = case when $1 > 0 then 'refunded' else payment_status end,
+             refunded_cents = greatest(coalesce(refunded_cents, 0), $1),
+             refunded_at = case when $1 > 0 then now() else refunded_at end,
+             updated_at = now()
+         where id = $2`,
+        [amountRefunded, reservationId]
+      );
+    }
+
+    return res.json({ received: true });
+  } catch (e) {
+    return res.status(400).json({ error: `Webhook error: ${e.message}` });
   }
 });
 
@@ -361,7 +447,8 @@ app.get('/api/admin/reservations', async (req, res) => {
     const result = await pool.query(
       `select id, customer_name, customer_email, customer_phone, party_size, experience_type,
               reservation_start_at, status, created_at, notes, admin_notes, status_updated_at,
-              terms_accepted_at
+              terms_accepted_at, payment_status, payment_total_cents, paid_at,
+              refunded_cents, refunded_at, stripe_checkout_session_id, stripe_payment_intent_id
        from reservations
        order by created_at desc
        limit 200`

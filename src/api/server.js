@@ -68,6 +68,59 @@ const DURATION_MINUTES = 90;
 const BUFFER_MINUTES = 90;
 const BLOCK_MINUTES = DURATION_MINUTES + BUFFER_MINUTES;
 
+const rateBuckets = new Map();
+
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.length > 0) {
+    return forwarded.split(',')[0].trim();
+  }
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
+function createRateLimiter({ keyPrefix, windowMs, max, message }) {
+  return (req, res, next) => {
+    const now = Date.now();
+    const key = `${keyPrefix}:${getClientIp(req)}`;
+    const existing = rateBuckets.get(key);
+
+    if (!existing || now - existing.windowStart >= windowMs) {
+      rateBuckets.set(key, { count: 1, windowStart: now });
+      return next();
+    }
+
+    if (existing.count >= max) {
+      const retryAfterSeconds = Math.ceil((windowMs - (now - existing.windowStart)) / 1000);
+      res.set('Retry-After', String(retryAfterSeconds));
+      return res.status(429).json({ error: message, retryAfterSeconds });
+    }
+
+    existing.count += 1;
+    return next();
+  };
+}
+
+const bookingLimiter = createRateLimiter({
+  keyPrefix: 'booking',
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  message: 'Too many booking requests. Please wait a few minutes and try again.'
+});
+
+const adminRouteLimiter = createRateLimiter({
+  keyPrefix: 'admin',
+  windowMs: 15 * 60 * 1000,
+  max: 240,
+  message: 'Too many admin requests. Please wait a few minutes and try again.'
+});
+
+const adminAuthFailedLimiter = createRateLimiter({
+  keyPrefix: 'admin-auth-failed',
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many failed admin auth attempts. Please wait before trying again.'
+});
+
 const LOCATIONS = {
   'serenade-assisted-living': {
     key: 'serenade-assisted-living',
@@ -84,6 +137,9 @@ function normalizeLocationKey(locationKey) {
 const isCustom = (experienceType = '') => experienceType.toLowerCase().includes('custom');
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
+
+app.use(['/api/availability/check', '/api/booking/hold', '/api/booking/submit'], bookingLimiter);
+app.use('/api/admin', adminRouteLimiter);
 
 app.post('/api/availability/check', async (req, res) => {
   const { date, locationKey } = req.body;
@@ -506,7 +562,13 @@ function requireAdmin(req, res) {
   const adminKey = process.env.ADMIN_API_KEY;
   const provided = req.header('x-admin-key');
   if (!adminKey || provided !== adminKey) {
-    res.status(401).json({ error: 'Unauthorized' });
+    let allowedToRespond = false;
+    adminAuthFailedLimiter(req, res, () => {
+      allowedToRespond = true;
+    });
+    if (allowedToRespond) {
+      res.status(401).json({ error: 'Unauthorized' });
+    }
     return false;
   }
   return true;

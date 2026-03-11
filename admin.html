@@ -11,7 +11,8 @@
     .wrap{max-width:1100px;margin:0 auto;padding:24px 18px 64px}
     .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
     .brand{font-weight:700;font-size:1.2rem}
-    .nav a{color:#1e293b;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;margin-left:6px;font-size:.95rem}
+    .nav a{color:#1e293b;text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:.95rem}
+    .nav-links { display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-end; }
     .card{border:1px solid var(--line);border-radius:14px;background: #ffffff;padding:18px}
     .row{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
     button{background:var(--gold);border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:1rem}
@@ -108,13 +109,6 @@
       const d = new Date(value);
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
-    .nav-links {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      justify-content: flex-end;
-    }
-
     function hasQualifyingBooking(rowsForDay = []) {
       return rowsForDay.some(r =>
         ['pending','pending_staff_approval','confirmed'].includes(r.status) || r.payment_status === 'paid'
